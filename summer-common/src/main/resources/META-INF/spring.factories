@@ -1,0 +1,8 @@
+org.springframework.context.ApplicationContextInitializer=com.summer.common.initializ.BootContextInitializer
+
+# 配置中心配置数据处理
+org.springframework.boot.env.EnvironmentPostProcessor=\
+  com.summer.common.env.ConfigCenterEnvironmentPostProcessor
+
+org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
+  com.summer.common.boot.autoconfigure.ThinkerWebMvcConfiguration

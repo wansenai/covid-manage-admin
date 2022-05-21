@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="urn:org:jgroups"
+        xsi:schemaLocation="urn:org:jgroups http://www.jgroups.org/schema/jgroups.xsd">
+
+    <UDP suppress_time_out_of_buffer_space="1"
+         suppress_time_different_cluster_warnings="1"
+         suppress_time_different_version_warnings="1"
+         bind_addr="${jgroups.bind_addr:127.0.0.1}"
+         mcast_addr="${jgroups.udp.mcast_addr:239.9.9.9}"
+         mcast_port="${jgroups.udp.mcast_port:45588}"
+         tos="8"
+         ucast_recv_buf_size="5M"
+         ucast_send_buf_size="5M"
+         mcast_recv_buf_size="5M"
+         mcast_send_buf_size="5M"
+         max_bundle_size="64K"
+         enable_diagnostics="true"
+         disable_loopback="true"
+         log_discard_msgs="true"
+         log_discard_msgs_version="true"
+         thread_naming_pattern="clusters"
+         logical_addr_cache_max_size="1000"
+
+         thread_pool.min_threads="0"
+         thread_pool.max_threads="128"
+         thread_pool.keep_alive_time="5000"/>
+
+    <PING break_on_coord_rsp="true" discovery_rsp_expiry_time="3000"/>
+    <MERGE3 max_interval="30000" min_interval="10000"/>
+    <FD_SOCK/>
+    <FD_ALL/>
+    <VERIFY_SUSPECT timeout="1500"  />
+
+    <BARRIER />
+    <pbcast.NAKACK2 xmit_interval="500"
+                    use_mcast_xmit="false"
+                    log_discard_msgs="true"
+                    xmit_table_num_rows="100"
+                    use_mcast_xmit_req="true"
+                    discard_delivered_msgs="true"
+                    xmit_table_msgs_per_row="2000"
+                    xmit_table_max_compaction_time="30000"
+                    suppress_time_non_member_warnings="1"/>
+
+    <UNICAST3 xmit_table_num_rows="100" xmit_table_msgs_per_row="1000" xmit_table_max_compaction_time="30000" />
+
+    <pbcast.STABLE desired_avg_gossip="60000" max_bytes="5M"/>
+
+    <pbcast.GMS print_local_addr="true" join_timeout="10000" merge_timeout="5000" all_clients_retry_timeout="10000" />
+    <UFC max_credits="5M" min_threshold="0.5"/>
+    <MFC max_credits="5M" min_threshold="0.5"/>
+    <FRAG2 frag_size="60K"  />
+    <pbcast.STATE_TRANSFER />
+    <RSVP resend_interval="2000" timeout="10000"/>
+    <!--support cluster locking-->
+    <CENTRAL_LOCK num_backups="2"/>
+</config>

@@ -1,0 +1,13 @@
+{
+  "hints": [],
+  "groups": [
+  ],
+  "properties": [
+    {
+      "sourceType": "com.summer.common.env.ConfigCenterEnvironmentPostProcessor",
+      "name": "thinker.config-center.addr",
+      "description": "config the config-center connect address",
+      "type": "String"
+    }
+  ]
+}
