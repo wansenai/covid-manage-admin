@@ -9,7 +9,8 @@
 ### IntelliJ IDEA ###
 .idea
 *.iws
-tob-common/tob-common.iml
+summer-common/summer-common.iml
+manage-serve/manage-serve.iml
 *.ipr
 
 ### NetBeans ###

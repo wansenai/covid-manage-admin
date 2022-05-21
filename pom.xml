@@ -12,7 +12,7 @@
 
     <modules>
         <module>manage-serve</module>
-        <module>thinker-common</module>
+        <module>summer-common</module>
     </modules>
 
     <parent>
