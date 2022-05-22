@@ -31,7 +31,7 @@ git pull
 mvn clean install
 CheckCmd
 
-JARS=/project/deploys/${JAR_NAME}
+JARS=/opt/deploys/${JAR_NAME}
 mkdir -p ${JARS}
 CheckCmd
 
