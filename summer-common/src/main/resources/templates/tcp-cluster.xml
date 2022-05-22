@@ -1,32 +1,31 @@
-
-<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"  xmlns="urn:org:jgroups"
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="urn:org:jgroups"
         xsi:schemaLocation="urn:org:jgroups http://www.jgroups.org/schema/jgroups.xsd">
 
-        <TCP bind_port="35588"
-             tcp_nodelay="true"
-             recv_buf_size="${tcp.recv_buf_size:1024k}"
-             send_buf_size="${tcp.send_buf_size:1024k}"
-             max_bundle_size="512K"
-             sock_conn_timeout="2000"
-             thread_pool.min_threads="0"
-             thread_pool.max_threads="32"
-             thread_pool.keep_alive_time="30000"/>
+    <TCP bind_port="35588"
+         tcp_nodelay="true"
+         recv_buf_size="${tcp.recv_buf_size:1024k}"
+         send_buf_size="${tcp.send_buf_size:1024k}"
+         max_bundle_size="512K"
+         sock_conn_timeout="2000"
+         thread_pool.min_threads="0"
+         thread_pool.max_threads="32"
+         thread_pool.keep_alive_time="30000"/>
 
-        <TCPGOSSIP initial_hosts="${jvm.gossip-routes:127.0.0.1[12001]}" sock_conn_timeout="2000"/>
-        <MERGE3  min_interval="10000" max_interval="30000"/>
-        <FD_SOCK/>
-        <FD_ALL timeout="9000" interval="3000" />
-        <VERIFY_SUSPECT timeout="1500"  />
-        <BARRIER />
-        <pbcast.NAKACK2 use_mcast_xmit="false" discard_delivered_msgs="true"/>
-        <UNICAST3 />
-        <pbcast.STABLE stability_delay="1000" desired_avg_gossip="60000" max_bytes="4M"/>
-        <pbcast.GMS print_local_addr="true" join_timeout="2000"/>
-        <UFC max_credits="5M" min_threshold="0.3"/>
-        <MFC max_credits="5M" min_threshold="0.3"/>
-        <FRAG2 frag_size="60K"  />
-        <!--RSVP resend_interval="2000" timeout="10000"/-->
-        <pbcast.STATE_TRANSFER/>
+    <TCPGOSSIP initial_hosts="${jvm.gossip-routes:127.0.0.1[12001]}" sock_conn_timeout="2000"/>
+    <MERGE3 min_interval="10000" max_interval="30000"/>
+    <FD_SOCK/>
+    <FD_ALL timeout="9000" interval="3000"/>
+    <VERIFY_SUSPECT timeout="1500"/>
+    <BARRIER/>
+    <pbcast.NAKACK2 use_mcast_xmit="false" discard_delivered_msgs="true"/>
+    <UNICAST3/>
+    <pbcast.STABLE stability_delay="1000" desired_avg_gossip="60000" max_bytes="4M"/>
+    <pbcast.GMS print_local_addr="true" join_timeout="2000"/>
+    <UFC max_credits="5M" min_threshold="0.3"/>
+    <MFC max_credits="5M" min_threshold="0.3"/>
+    <FRAG2 frag_size="60K"/>
+    <!--RSVP resend_interval="2000" timeout="10000"/-->
+    <pbcast.STATE_TRANSFER/>
 
-        <CENTRAL_LOCK num_backups="2"/>
+    <CENTRAL_LOCK num_backups="2"/>
 </config>

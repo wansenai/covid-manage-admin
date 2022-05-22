@@ -5,8 +5,8 @@ import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.rits.cloning.Cloner;
-import com.summer.common.support.DateFormat;
 import com.summer.common.core.StringEnum;
+import com.summer.common.support.DateFormat;
 import org.apache.commons.lang.ClassUtils;
 import org.apache.commons.lang.reflect.FieldUtils;
 import org.modelmapper.ModelMapper;
@@ -26,7 +26,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentMap;
 
-/** BEAN类工具 **/
+/**
+ * BEAN类工具
+ **/
 public final class BeanHelper {
     private static final Logger LOG = LoggerFactory.getLogger(BeanHelper.class);
 
@@ -34,31 +36,35 @@ public final class BeanHelper {
     private static ModelMapper modelMapper = new ModelMapper();
     private static Cloner cloner = new Cloner();
 
-    private BeanHelper() {
-    }
-
     static {
         modelMapper.getConfiguration()
                    .setFieldMatchingEnabled(true)                         // 字段匹配
                    .setFullTypeMatchingRequired(true)                     // 类型匹配
                    .setMatchingStrategy(MatchingStrategies.STRICT)        // 严格策略
-                   .setPropertyCondition(ctx -> null!=ctx.getSource())    // 过滤NULL
+                   .setPropertyCondition(ctx -> null != ctx.getSource())    // 过滤NULL
                    .setProvider(request -> {
-                       if (null!=request.getSource() && requireClone(request.getSource().getClass())) {
+                       if (null != request.getSource() && requireClone(request.getSource().getClass())) {
                            return cloner.deepClone(request.getSource());
                        }
                        return null;
                    });
     }
 
-    /** 对象拷贝 **/
+    private BeanHelper() {
+    }
+
+    /**
+     * 对象拷贝
+     **/
     public static void copy(final Object source, final Object target) {
         if (null != source && null != target) {
             modelMapper.map(source, target);
         }
     }
 
-    /** 对象克隆 **/
+    /**
+     * 对象克隆
+     **/
     public static <Source, Target> Target castTo(final Source source, final Class<Target> destType) {
         if (null == source || null == destType) {
             return null;
@@ -72,7 +78,9 @@ public final class BeanHelper {
         }
     }
 
-    /** 集合对象克隆 **/
+    /**
+     * 集合对象克隆
+     **/
     public static <Source, Target> List<Target> castTo(final Collection<Source> source, final Class<Target> targetType) {
         if (CollectsHelper.isNullOrEmpty(source)) {
             return Lists.newArrayListWithExpectedSize(0);
@@ -85,24 +93,32 @@ public final class BeanHelper {
         return result;
     }
 
-    /** Map 转 Bean **/
+    /**
+     * Map 转 Bean
+     **/
     public static <T> T map2Bean(final Map<String, Object> source, final Class<T> clazz) {
         return JsonHelper.parseObject(source instanceof JSONObject ? source.toString() : new JSONObject(source).toString(), clazz);
     }
 
-    /** Bean 转 Map **/
+    /**
+     * Bean 转 Map
+     **/
     public static Map<String, Object> bean2Map(Object source) {
-        return source instanceof JSONObject ? (JSONObject)source : (JSONObject) JSON.toJSON(source);
+        return source instanceof JSONObject ? (JSONObject) source : (JSONObject) JSON.toJSON(source);
     }
 
-    /** 对象转 MultiValueMap **/
+    /**
+     * 对象转 MultiValueMap
+     **/
     public static MultiValueMap<String, Object> toMultiMap(final Object source) {
         MultiValueMap<String, Object> mvm = new LinkedMultiValueMap<>();
         mvm.setAll(bean2Map(source));
         return mvm;
     }
 
-    /** 设置对象属性值 **/
+    /**
+     * 设置对象属性值
+     **/
     public static void setProperty(final Object bean, final String name, final Object value) {
         Field field = FieldUtils.getField(bean.getClass(), name, true);
         try {
@@ -127,7 +143,9 @@ public final class BeanHelper {
         }
     }
 
-    /** 取对象字段值 **/
+    /**
+     * 取对象字段值
+     **/
     public static Object getProperty(final Object bean, final String name) {
         try {
             Field field = FieldUtils.getField(bean.getClass(), name, true);
@@ -137,7 +155,9 @@ public final class BeanHelper {
         }
     }
 
-    /** 查找对象中的字段 **/
+    /**
+     * 查找对象中的字段
+     **/
     public static Field findField(final Class<?> clz, final String fieldName) {
         ConcurrentMap<String, Field> fcMap = cfMap.get(clz);
         if (CollectsHelper.isNullOrEmpty(fcMap)) {
@@ -153,7 +173,9 @@ public final class BeanHelper {
         }
     }
 
-    /** 判断是否基本类型 **/
+    /**
+     * 判断是否基本类型
+     **/
     public static boolean isPrimitiveType(final Class<?> clz) {
         return clz.isPrimitive()
                 || isSubTypeOf(clz, Number.class, Boolean.class, Character.class, String.class, Date.class, LocalDate.class, LocalDateTime.class);

@@ -63,19 +63,23 @@ public class EsearchOperations {
         this.admin = client.admin().indices();
     }
 
-    /** 创建INDEX **/
+    /**
+     * 创建INDEX
+     **/
     @Deprecated
     public <T> String createIndex(final T dataKey, Function<T, String> indexNameStrategy, String indexBody) {
-        if(null == dataKey || null == indexNameStrategy) {
+        if (null == dataKey || null == indexNameStrategy) {
             throw new EsearchException("create elasticsearch index dataKey and indexNameStrategy must not be null...");
         }
-        if(!indexMap.containsKey(dataKey)){
+        if (!indexMap.containsKey(dataKey)) {
             indexMap.put(dataKey, createIndex(indexNameStrategy.apply(dataKey), indexBody));
         }
         return indexMap.get(dataKey);
     }
 
-    /** 创建INDEX **/
+    /**
+     * 创建INDEX
+     **/
     public String createIndex(String indexName, String indexBody) {
         if (!indexExists(indexName)) synchronized (this) {
             if (!indexExists(indexName)) {
@@ -89,10 +93,13 @@ public class EsearchOperations {
         }
         return indexName;
     }
-    /** 创建 INDEX **/
+
+    /**
+     * 创建 INDEX
+     **/
     public String makeGetIndexWith(String indexName, JSONObject json) {
-        if(!indexExists(indexName)) synchronized (this) {
-            if(!indexExists(indexName)) {
+        if (!indexExists(indexName)) synchronized (this) {
+            if (!indexExists(indexName)) {
                 CreateIndexResponse response = admin.prepareCreate(indexName).setSource(json).get(TIMEOUT);
                 if (!response.isAcknowledged()) {
                     throw new EsearchException("failed to create index " + indexName);
@@ -101,9 +108,12 @@ public class EsearchOperations {
         }
         return indexName;
     }
-    /** 只创建 INDEX **/
+
+    /**
+     * 只创建 INDEX
+     **/
     public String onlyMakeGetIndex(String indexName, JSONObject settings, JSONObject aliases) {
-        if(!indexExists(indexName)) synchronized (this) {
+        if (!indexExists(indexName)) synchronized (this) {
             if (!indexExists(indexName)) {
                 CreateIndexRequestBuilder builder = admin.prepareCreate(indexName);
                 if (null != settings) {
@@ -112,44 +122,56 @@ public class EsearchOperations {
                 if (null != aliases) {
                     builder.setAliases(aliases);
                 }
-                if(!builder.get(TIMEOUT).isAcknowledged()) {
+                if (!builder.get(TIMEOUT).isAcknowledged()) {
                     throw new EsearchException("failed to create index " + indexName);
                 }
             }
         }
         return indexName;
     }
-    /** 设置数据类型映射 **/
+
+    /**
+     * 设置数据类型映射
+     **/
     public boolean typeMappingPut(String indexName, String typeName, JSONObject mapping) {
         if (indexExists(indexName) && null != mapping && mapping.size() > 0) {
             PutMappingResponse response = admin.preparePutMapping(indexName)
-                    .setSource(mapping)
-                    .setType(typeName)
-                    .get(TIMEOUT);
+                                               .setSource(mapping)
+                                               .setType(typeName)
+                                               .get(TIMEOUT);
             return response.isAcknowledged();
         }
         return false;
     }
-    /** 数据类型映射 **/
+
+    /**
+     * 数据类型映射
+     **/
     public Map<String, Object> typeMappingGet(String indexName, String typeName) {
-        if(typeExists(indexName, typeName)) {
+        if (typeExists(indexName, typeName)) {
             GetMappingsResponse response = admin.prepareGetMappings(indexName).setTypes(typeName).get(TIMEOUT);
             return response.mappings().get(indexName).get(typeName).sourceAsMap();
         }
         return Maps.newHashMap();
     }
-    /** 删除所有INDEX **/
+
+    /**
+     * 删除所有INDEX
+     **/
     public boolean deleteAllIndex() {
         boolean deleted = deleteIndex("_all");
         indexMap.clear();
         return deleted;
     }
-    /** 删除指定INDEX **/
+
+    /**
+     * 删除指定INDEX
+     **/
     public boolean deleteIndex(String indexName) {
-        if(indexExists(indexName)) {
+        if (indexExists(indexName)) {
             DeleteIndexResponse response = admin.prepareDelete(indexName).get(TIMEOUT);
             boolean deleted = response.isAcknowledged();
-            if(deleted) {
+            if (deleted) {
                 indexMap.remove(indexName);
             }
             return deleted;
@@ -157,66 +179,81 @@ public class EsearchOperations {
         indexMap.remove(indexName);
         return true;
     }
-    /** 创建或更新文档，如果 jsonId对应的文存在则更新，不存在则创建 **/
+
+    /**
+     * 创建或更新文档，如果 jsonId对应的文存在则更新，不存在则创建
+     **/
     public String merged(final EsDocument document) {
         requestedBuilder(document).get(TIMEOUT);
         return document.docId;
     }
-    /** 批量 创建或更新文档 **/
+
+    /**
+     * 批量 创建或更新文档
+     **/
     public List<BulkItemResponse.Failure> multiMerged(List<EsDocument> documents, boolean immediate) {
         List<BulkItemResponse.Failure> failures = Lists.newArrayList();
-        if(!CollectsHelper.isNullOrEmpty(documents)) {
+        if (!CollectsHelper.isNullOrEmpty(documents)) {
             List<IndexRequestBuilder> builders = Lists.newArrayList();
-            for(EsDocument document: documents) {
+            for (EsDocument document : documents) {
                 builders.add(requestedBuilder(document));
             }
             return requestedBulk(builders, immediate, false);
         }
         return failures;
     }
-    /** 删除指定数据 **/
+
+    /**
+     * 删除指定数据
+     **/
     public int deleted(final EsDocument document) {
         DeleteRequestBuilder builder = deleteRequestBuilder(document);
         return RestStatus.OK == builder.get(TIMEOUT).status() ? 1 : 0;
     }
-    /** 批量删除数据 **/
+
+    /**
+     * 批量删除数据
+     **/
     public List<BulkItemResponse.Failure> multiDeleted(List<EsDocument> documents, boolean immediate) {
         List<BulkItemResponse.Failure> failures = Lists.newArrayList();
-        if(!CollectsHelper.isNullOrEmpty(documents)) {
+        if (!CollectsHelper.isNullOrEmpty(documents)) {
             List<DeleteRequestBuilder> builders = Lists.newArrayList();
-            for(EsDocument document: documents) {
+            for (EsDocument document : documents) {
                 builders.add(deleteRequestBuilder(document));
             }
             return requestedBulk(builders, immediate, true);
         }
         return failures;
     }
-    /** 查询操作 **/
+
+    /**
+     * 查询操作
+     **/
     public SearchResponse search(DataSearcher ds) {
         SearchRequestBuilder builder = client.prepareSearch();
-        if(!CollectsHelper.isNullOrEmpty(ds.indexes)) {
+        if (!CollectsHelper.isNullOrEmpty(ds.indexes)) {
             builder = builder.setIndices(ds.indexes);
         }
-        if(!CollectsHelper.isNullOrEmpty(ds.dataTypes)) {
+        if (!CollectsHelper.isNullOrEmpty(ds.dataTypes)) {
             builder = builder.setTypes(ds.dataTypes);
         }
-        if(!CollectsHelper.isNullOrEmpty(ds.routings)) {
+        if (!CollectsHelper.isNullOrEmpty(ds.routings)) {
             builder = builder.setRouting(ds.routings);
         }
-        if(null != ds.query) {
+        if (null != ds.query) {
             builder = builder.setQuery(ds.query);
         }
-        if(!ds.sorts.isEmpty()) {
-            for(SortBuilder sort: ds.sorts) {
+        if (!ds.sorts.isEmpty()) {
+            for (SortBuilder sort : ds.sorts) {
                 builder = builder.addSort(sort);
             }
         }
-        if(!ds.aggregations.isEmpty()) {
-            for(AggregationBuilder agg: ds.aggregations) {
+        if (!ds.aggregations.isEmpty()) {
+            for (AggregationBuilder agg : ds.aggregations) {
                 builder = builder.addAggregation(agg);
             }
         }
-        if(ds.size < 1) {
+        if (ds.size < 1) {
             LOG.warn("you will fetch 0 row data， because the size < 1");
         }
         builder = builder.setSize(ds.size < 1 ? 0 : ds.size);
@@ -224,21 +261,27 @@ public class EsearchOperations {
         showS(builder);
         return builder.get(TIMEOUT);
     }
-    /** 批量获取 **/
+
+    /**
+     * 批量获取
+     **/
     public MultiGetResponse multiGet(List<DocumentIdx> didList) {
         MultiGetRequestBuilder builder = client.prepareMultiGet();
-        if(!CollectsHelper.isNullOrEmpty(didList)) {
-            for(DocumentIdx idx: didList) {
-                if(!StringHelper.isBlank(idx.indexName) && !StringHelper.isBlank(idx.docId)) {
+        if (!CollectsHelper.isNullOrEmpty(didList)) {
+            for (DocumentIdx idx : didList) {
+                if (!StringHelper.isBlank(idx.indexName) && !StringHelper.isBlank(idx.docId)) {
                     builder.add(idx.indexName, idx.dataType, idx.docId);
                 }
             }
         }
         return builder.get(TIMEOUT);
     }
-    /** 获取指定文档 **/
+
+    /**
+     * 获取指定文档
+     **/
     public GetResponse oneGet(String indexName, String dataType, String documentId) {
-        if(StringHelper.isBlank(indexName) || StringHelper.isBlank(dataType) || StringHelper.isBlank(documentId)) {
+        if (StringHelper.isBlank(indexName) || StringHelper.isBlank(dataType) || StringHelper.isBlank(documentId)) {
             throw new EsearchException("elasticsearch one get indices, dataType, documentId must not be empty/null...");
         }
         return client.prepareGet(indexName, dataType, documentId).get(TIMEOUT);
@@ -247,48 +290,48 @@ public class EsearchOperations {
     // and
     public BoolQueryBuilder eomQueryBuilderAND(Set<QueryField> conditions) {
         BoolQueryBuilder builder = QueryBuilders.boolQuery();
-        if(!CollectsHelper.isNullOrEmpty(conditions)) {
-            for(QueryField field: conditions) {
-                if(null != field && null != field.value && null != field.eql && !StringHelper.isBlank(field.propertyAt)) {
+        if (!CollectsHelper.isNullOrEmpty(conditions)) {
+            for (QueryField field : conditions) {
+                if (null != field && null != field.value && null != field.eql && !StringHelper.isBlank(field.propertyAt)) {
                     String name = StringHelper.camel2Underline(field.propertyAt);
                     boolean primitive = BeanHelper.isPrimitiveType(field.value.getClass());
                     switch (field.eql) {
                         case Included:
-                            if(primitive) {
+                            if (primitive) {
                                 builder.must(QueryBuilders.termQuery(name, field.value));
                             } else if (field.value instanceof Collection && !((Collection) field.value).isEmpty()) {
                                 builder.must(QueryBuilders.termsQuery(name, ((Collection) field.value).toArray()));
                             }
                             break;
                         case Excluded:
-                            if(primitive) {
+                            if (primitive) {
                                 builder.mustNot(QueryBuilders.termQuery(name, field.value));
                             } else if (field.value instanceof Collection && !((Collection) field.value).isEmpty()) {
                                 builder.mustNot(QueryBuilders.termsQuery(name, ((Collection) field.value).toArray()));
                             }
                             break;
                         case Greater:
-                            if(primitive && StringHelper.isNumeric(field.value.toString())) {
+                            if (primitive && StringHelper.isNumeric(field.value.toString())) {
                                 builder.must(QueryBuilders.rangeQuery(name).gt(field.value));
                             }
                             break;
                         case GreaterE:
-                            if(primitive && StringHelper.isNumeric(field.value.toString())) {
+                            if (primitive && StringHelper.isNumeric(field.value.toString())) {
                                 builder.must(QueryBuilders.rangeQuery(name).gte(field.value));
                             }
                             break;
                         case Little:
-                            if(primitive && StringHelper.isNumeric(field.value.toString())) {
+                            if (primitive && StringHelper.isNumeric(field.value.toString())) {
                                 builder.must(QueryBuilders.rangeQuery(name).lt(field.value));
                             }
                             break;
                         case LittleE:
-                            if(primitive && StringHelper.isNumeric(field.value.toString())) {
+                            if (primitive && StringHelper.isNumeric(field.value.toString())) {
                                 builder.must(QueryBuilders.rangeQuery(name).lte(field.value));
                             }
                             break;
                         case Matched:
-                            if(primitive && !StringHelper.isBlank(field.value.toString())) {
+                            if (primitive && !StringHelper.isBlank(field.value.toString())) {
                                 String matcher = "*" + QueryParser.escape(field.value.toString()) + "*";
                                 builder.must(QueryBuilders.wildcardQuery(name, matcher));
                             }
@@ -304,50 +347,50 @@ public class EsearchOperations {
     }
 
     // or
-    public BoolQueryBuilder eomQueryOR(Set<QueryField> conditions){
+    public BoolQueryBuilder eomQueryOR(Set<QueryField> conditions) {
         BoolQueryBuilder builder = QueryBuilders.boolQuery();
-        if(!CollectsHelper.isNullOrEmpty(conditions)) {
-            for(QueryField field: conditions) {
-                if(null != field && null != field.value && null != field.eql && !StringHelper.isBlank(field.propertyAt)) {
+        if (!CollectsHelper.isNullOrEmpty(conditions)) {
+            for (QueryField field : conditions) {
+                if (null != field && null != field.value && null != field.eql && !StringHelper.isBlank(field.propertyAt)) {
                     String name = StringHelper.camel2Underline(field.propertyAt);
                     boolean primitive = BeanHelper.isPrimitiveType(field.value.getClass());
                     switch (field.eql) {
                         case Included:
-                            if(primitive) {
+                            if (primitive) {
                                 builder.should(QueryBuilders.termQuery(name, field.value));
                             } else if (field.value instanceof Collection && !((Collection) field.value).isEmpty()) {
                                 builder.should(QueryBuilders.termsQuery(name, ((Collection) field.value).toArray()));
                             }
                             break;
                         case Excluded:
-                            if(primitive) {
+                            if (primitive) {
                                 builder.should(QueryBuilders.boolQuery().mustNot(QueryBuilders.termQuery(name, field.value)));
                             } else if (field.value instanceof Collection && !((Collection) field.value).isEmpty()) {
                                 builder.should(QueryBuilders.boolQuery().mustNot(QueryBuilders.termsQuery(name, ((Collection) field.value).toArray())));
                             }
                             break;
                         case Greater:
-                            if(primitive && StringHelper.isNumeric(field.value.toString())) {
+                            if (primitive && StringHelper.isNumeric(field.value.toString())) {
                                 builder.should(QueryBuilders.rangeQuery(name).gt(field.value));
                             }
                             break;
                         case GreaterE:
-                            if(primitive && StringHelper.isNumeric(field.value.toString())) {
+                            if (primitive && StringHelper.isNumeric(field.value.toString())) {
                                 builder.should(QueryBuilders.rangeQuery(name).gte(field.value));
                             }
                             break;
                         case Little:
-                            if(primitive && StringHelper.isNumeric(field.value.toString())) {
+                            if (primitive && StringHelper.isNumeric(field.value.toString())) {
                                 builder.should(QueryBuilders.rangeQuery(name).lt(field.value));
                             }
                             break;
                         case LittleE:
-                            if(primitive && StringHelper.isNumeric(field.value.toString())) {
+                            if (primitive && StringHelper.isNumeric(field.value.toString())) {
                                 builder.should(QueryBuilders.rangeQuery(name).lte(field.value));
                             }
                             break;
                         case Matched:
-                            if(primitive && !StringHelper.isBlank(field.value.toString())) {
+                            if (primitive && !StringHelper.isBlank(field.value.toString())) {
                                 String matcher = "*" + QueryParser.escape(field.value.toString()) + "*";
                                 builder.should(QueryBuilders.wildcardQuery(name, matcher));
                             }
@@ -375,33 +418,33 @@ public class EsearchOperations {
     private IndexRequestBuilder requestedBuilder(EsDocument document) {
         document.ofDocumentId(StringHelper.defaultIfBlank(document.docId, SnowIdHelper.unique()));
         IndexRequestBuilder builder = client.prepareIndex(document.indexName, document.dataType, document.docId)
-                .setSource(document.docJson, XContentType.JSON);
+                                            .setSource(document.docJson, XContentType.JSON);
         parentRoutingIntoBuilder(document, builder, false);
         return builder;
     }
 
     private List<BulkItemResponse.Failure> requestedBulk(List<? extends ReplicationRequestBuilder> builders, boolean immediate, boolean deleted) {
         final BulkRequestBuilder bulk = client.prepareBulk();
-        if(!CollectsHelper.isNullOrEmpty(builders)) {
+        if (!CollectsHelper.isNullOrEmpty(builders)) {
             builders.forEach(builder -> {
-                if(deleted) {
+                if (deleted) {
                     bulk.add((DeleteRequestBuilder) builder);
                 } else {
                     bulk.add((IndexRequestBuilder) builder);
                 }
             });
         }
-        if(0 == bulk.numberOfActions()) {
+        if (0 == bulk.numberOfActions()) {
             throw new EsearchException("elasticsearch dealing bulk all builds must not be empty/null...");
         }
-        if(immediate) {
+        if (immediate) {
             bulk.setRefreshPolicy(WriteRequest.RefreshPolicy.IMMEDIATE);
         }
         BulkResponse response = bulk.get(TIMEOUT);
         List<BulkItemResponse.Failure> failures = Lists.newArrayList();
-        if(response.hasFailures()) {
-            for(BulkItemResponse item: response.getItems()) {
-                if(item.isFailed()) {
+        if (response.hasFailures()) {
+            for (BulkItemResponse item : response.getItems()) {
+                if (item.isFailed()) {
                     LOG.warn("failure: {}", item.getFailure().toString());
                     failures.add(item.getFailure());
                 }
@@ -411,18 +454,18 @@ public class EsearchOperations {
     }
 
     private void parentRoutingIntoBuilder(EsDocument document, ReplicationRequestBuilder builder, boolean deleted) {
-        if(!StringHelper.isBlank(document.routing)) {
-            if(deleted) {
-                ((DeleteRequestBuilder)builder).setRouting(document.routing);
+        if (!StringHelper.isBlank(document.routing)) {
+            if (deleted) {
+                ((DeleteRequestBuilder) builder).setRouting(document.routing);
             } else {
-                ((IndexRequestBuilder)builder).setRouting(document.routing);
+                ((IndexRequestBuilder) builder).setRouting(document.routing);
             }
         }
-        if(!StringHelper.isBlank(document.parent)) {
-            if(deleted) {
-                ((DeleteRequestBuilder)builder).setParent(document.parent);
+        if (!StringHelper.isBlank(document.parent)) {
+            if (deleted) {
+                ((DeleteRequestBuilder) builder).setParent(document.parent);
             } else {
-                ((IndexRequestBuilder)builder).setParent(document.parent);
+                ((IndexRequestBuilder) builder).setParent(document.parent);
             }
         }
     }
@@ -436,14 +479,15 @@ public class EsearchOperations {
     }
 
     private void showS(ActionRequestBuilder builder) {
-        if(showS) {
+        if (showS) {
             System.out.println("elasticsearch query is: " + builder.toString());
         }
     }
 
-    @PreDestroy @SuppressWarnings("unused")
+    @PreDestroy
+    @SuppressWarnings("unused")
     private void destroy() {
-        if(null != client) {
+        if (null != client) {
             client.close();
         }
     }

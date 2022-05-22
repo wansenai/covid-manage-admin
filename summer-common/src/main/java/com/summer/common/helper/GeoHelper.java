@@ -9,7 +9,9 @@ import java.util.BitSet;
 import java.util.HashMap;
 import java.util.List;
 
-/** GEO 计算 **/
+/**
+ * GEO 计算
+ **/
 public final class GeoHelper {
     //地球半径,单位米
     private static final double EARTH_RADIUS = 6378137;
@@ -18,22 +20,20 @@ public final class GeoHelper {
     //取 geohash 前 5 位区块，经纬度转化为二进制长度
     private static final int LAT_LENGTH = 12;
     private static final int LNG_LENGTH = 13;
-    //经纬度单独编码长度
-    private static int NUM_BITS = 6 * 5;
     //32位编码对应字符
     private final static char[] DIGITS = {'0', '1', '2', '3', '4', '5', '6', '7', '8',
             '9', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'j', 'k', 'm', 'n', 'p',
             'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z'};
     //定义编码映射关系
     private final static HashMap<Character, Integer> LOOK_UP = Maps.newHashMap();
-
     //每格经纬度的单位大小
     private static final HashMap<String, BigDecimal> MIN_LAT_LNG = Maps.newHashMap();
-
     private static final BigDecimal BD90 = new BigDecimal("90");
     private static final BigDecimal BD_90 = new BigDecimal("-90");
     private static final BigDecimal BD180 = new BigDecimal("180");
     private static final BigDecimal BD_180 = new BigDecimal("-180");
+    //经纬度单独编码长度
+    private static int NUM_BITS = 6 * 5;
 
     //初始化编码映射内容
     static {
@@ -56,7 +56,9 @@ public final class GeoHelper {
     private GeoHelper() {
     }
 
-    /** 求所在坐标点及周围点组成的九个最近距离 */
+    /**
+     * 求所在坐标点及周围点组成的九个最近距离
+     */
     public static List<String> nearNine(final BigDecimal lat, final BigDecimal lon) {
         BigDecimal leftLat = MathHelper.nvl(lat).subtract(MIN_LAT_LNG.get("MIN_LAT"));
         BigDecimal rightLat = MathHelper.nvl(lat).add(MIN_LAT_LNG.get("MIN_LAT"));
@@ -178,8 +180,8 @@ public final class GeoHelper {
 
     private static BigDecimal rad(BigDecimal dot) {
         return MathHelper.nvl(dot)
-                .multiply(BigDecimal.valueOf(Math.PI))
-                .divide(BD180, SCALE, BigDecimal.ROUND_HALF_UP);
+                         .multiply(BigDecimal.valueOf(Math.PI))
+                         .divide(BD180, SCALE, BigDecimal.ROUND_HALF_UP);
     }
 
     /**
@@ -215,7 +217,7 @@ public final class GeoHelper {
         return buffer;
     }
 
-    private static BigDecimal middle(final BigDecimal floor, final BigDecimal ceiling){
+    private static BigDecimal middle(final BigDecimal floor, final BigDecimal ceiling) {
         return (MathHelper.nvl(floor).add(MathHelper.nvl(ceiling))).divide(BD2, 6, BigDecimal.ROUND_HALF_UP);
     }
 

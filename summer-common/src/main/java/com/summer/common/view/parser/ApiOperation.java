@@ -8,10 +8,18 @@ import java.lang.annotation.Target;
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
 public @interface ApiOperation {
-    /** API名称 **/
+    /**
+     * API名称
+     **/
     String name();
-    /** 是否记录日志 **/
+
+    /**
+     * 是否记录日志
+     **/
     boolean note() default true;
-    /** 是否需要认证 **/
+
+    /**
+     * 是否需要认证
+     **/
     boolean permit() default true;
 }

@@ -14,14 +14,14 @@ import ch.qos.logback.core.rolling.RollingFileAppender;
 import ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP;
 import ch.qos.logback.core.rolling.TimeBasedRollingPolicy;
 import ch.qos.logback.core.util.FileSize;
-import com.summer.common.rabbit.RabbitOutputStream;
-import com.summer.common.support.IConstant;
-import com.summer.common.support.NaturalizeLog;
 import com.summer.common.esearch.EsearchOutputStream;
 import com.summer.common.helper.BytesHelper;
 import com.summer.common.helper.JvmOSHelper;
 import com.summer.common.helper.SpringHelper;
 import com.summer.common.helper.StringHelper;
+import com.summer.common.rabbit.RabbitOutputStream;
+import com.summer.common.support.IConstant;
+import com.summer.common.support.NaturalizeLog;
 import com.summer.common.support.OperationLog;
 import org.slf4j.LoggerFactory;
 
@@ -55,11 +55,11 @@ class LogbackResetInitializer {
         Logger logger = log.getLogger(Logger.ROOT_LOGGER_NAME);
         logger.setLevel(logLevel());
         // 写入 STREAM
-        if(IConstant.APPENDER_STREAM.equalsIgnoreCase(logAppender())) {
+        if (IConstant.APPENDER_STREAM.equalsIgnoreCase(logAppender())) {
             logger.addAppender(logStreamAppender());
         }
         // 日志写入文件
-        else if(IConstant.APPENDER_FILE.equalsIgnoreCase(logAppender())) {
+        else if (IConstant.APPENDER_FILE.equalsIgnoreCase(logAppender())) {
             // 操作日志单独输出
             Logger operate = log.getLogger(OperationLog.class);
             if (null != operate) {
@@ -89,6 +89,7 @@ class LogbackResetInitializer {
         new File(logDir).mkdirs();
         return logDir + SpringHelper.applicationName() + ".%d{yyyy-MM-dd}.%i.log";
     }
+
     // 输出控制台LOG
     private ConsoleAppender<ILoggingEvent> logConsoleAppender() {
         ConsoleAppender<ILoggingEvent> consoleAppender = new ConsoleAppender<>();
@@ -98,6 +99,7 @@ class LogbackResetInitializer {
         consoleAppender.start();
         return consoleAppender;
     }
+
     // 输出 RabbitMQ LOG
     private StreamAppender<ILoggingEvent> logStreamAppender() {
         String rabbit = logRabbitURL(), elastic = logElasticURL();
@@ -108,6 +110,7 @@ class LogbackResetInitializer {
         StreamAppender.start();
         return StreamAppender;
     }
+
     // 输出文件LOG
     private RollingFileAppender<ILoggingEvent> logFileAppender(String namePattern) {
         RollingFileAppender<ILoggingEvent> rollingFileAppender = new RollingFileAppender<>();
@@ -182,15 +185,18 @@ class LogbackResetInitializer {
 
     public static class StreamAppender<E> extends OutputStreamAppender<E> {
         private final String rabbitURI, elasticURI;
+
         StreamAppender(String rabbitURI, String elasticURI) {
-            if(StringHelper.isBlank(rabbitURI) && StringHelper.isBlank(elasticURI)) {
+            if (StringHelper.isBlank(rabbitURI) && StringHelper.isBlank(elasticURI)) {
                 throw new LogbackException("LOG to stream must provided " + IConstant.KEY_LOG_RABBIT_URI + " or " + IConstant.KEY_LOG_ELASTIC_URI);
             }
-            this.rabbitURI = rabbitURI; this.elasticURI = elasticURI;
+            this.rabbitURI = rabbitURI;
+            this.elasticURI = elasticURI;
         }
+
         @Override
         public void start() {
-            if(!StringHelper.isBlank(rabbitURI) && !StringHelper.isBlank(elasticURI)) {
+            if (!StringHelper.isBlank(rabbitURI) && !StringHelper.isBlank(elasticURI)) {
                 System.out.println("WARNING: you conf rabbit and elasticsearch uri but intelligent ignore write elasticsearch...");
             }
             if (!StringHelper.isBlank(rabbitURI)) {

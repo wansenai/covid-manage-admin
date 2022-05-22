@@ -15,11 +15,14 @@ import java.io.StringWriter;
 import java.io.Writer;
 import java.nio.charset.Charset;
 
-/** 字节、流操作工具类 **/
+/**
+ * 字节、流操作工具类
+ **/
 public final class BytesHelper {
     public static final Charset UTF8 = Charset.forName("UTF-8");
     public static final Charset GBK = Charset.forName("GB18030");
     private static final int EOF = -1, BUF_LENGTH = 8192;
+
     private BytesHelper() {
     }
 
@@ -29,12 +32,16 @@ public final class BytesHelper {
             public boolean isFinished() {
                 return false;
             }
+
             @Override
             public boolean isReady() {
                 return false;
             }
+
             @Override
-            public void setReadListener(ReadListener readListener) {}
+            public void setReadListener(ReadListener readListener) {
+            }
+
             @Override
             public int read() throws IOException {
                 return stream.read();
@@ -46,7 +53,7 @@ public final class BytesHelper {
         return null == source ? StringHelper.EMPTY : new String(source, UTF8);
     }
 
-    public static String string(final InputStream input){
+    public static String string(final InputStream input) {
         return string(input, UTF8);
     }
 
@@ -59,14 +66,14 @@ public final class BytesHelper {
     }
 
     public static byte[] utf8Bytes(final String info) {
-        if(StringHelper.isBlank(info)){
+        if (StringHelper.isBlank(info)) {
             return new byte[0];
         }
         return info.getBytes(UTF8);
     }
 
     public static byte[] gbkBytes(final String info) {
-        if(StringHelper.isBlank(info)){
+        if (StringHelper.isBlank(info)) {
             return new byte[0];
         }
         return info.getBytes(GBK);
@@ -107,7 +114,7 @@ public final class BytesHelper {
             return out.toByteArray();
         } catch (Exception e) {
             throw new RuntimeException("InputStream to ByteArray error", e);
-        }finally {
+        } finally {
             close(out);
         }
     }
@@ -153,7 +160,8 @@ public final class BytesHelper {
     }
 
     private static long copyLarge(InputStream input, OutputStream output, byte[] buffer) throws IOException {
-        long count = 0; int n;
+        long count = 0;
+        int n;
         while (EOF != (n = input.read(buffer))) {
             output.write(buffer, 0, n);
             count += n;
@@ -162,7 +170,8 @@ public final class BytesHelper {
     }
 
     private static void copyLarge(final Reader input, final Writer output, final char[] buffer) throws IOException {
-        int n; while (EOF != (n = input.read(buffer))) {
+        int n;
+        while (EOF != (n = input.read(buffer))) {
             output.write(buffer, 0, n);
         }
     }

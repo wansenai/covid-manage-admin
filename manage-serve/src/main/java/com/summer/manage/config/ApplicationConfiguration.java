@@ -5,6 +5,8 @@ import com.summer.common.redis.RedisConfigSupport;
 import com.summer.common.redis.RedisOperations;
 import com.summer.common.view.IWebAuthenticationFilter;
 import com.summer.common.view.WebConfigurationSupport;
+import com.summer.manage.core.LoginCodeProperties;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -14,7 +16,9 @@ import javax.inject.Inject;
 import javax.sql.DataSource;
 import java.util.Map;
 
-/** 服务配置 **/
+/**
+ * 服务配置
+ **/
 @Configuration
 public class ApplicationConfiguration {
 
@@ -53,4 +57,9 @@ public class ApplicationConfiguration {
 //            rabbitMap.put(IRabbitMQ.DEFAULT, makeRabbit(env.getProperty("rabbit.uri.default")));
 //        }
 //    }
+        @Bean
+        @ConfigurationProperties(prefix = "login", ignoreUnknownFields = true)
+        public LoginCodeProperties loginCodeProperties() {
+            return new LoginCodeProperties();
+        }
 }

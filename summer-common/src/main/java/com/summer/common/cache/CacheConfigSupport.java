@@ -13,7 +13,9 @@ public abstract class CacheConfigSupport {
      */
     protected abstract String redisUri(Environment env);
 
-    /** 禁用缓存， 作用于全局级 **/
+    /**
+     * 禁用缓存， 作用于全局级
+     **/
     protected boolean disabled() {
         return false;
     }
@@ -22,7 +24,7 @@ public abstract class CacheConfigSupport {
     @Inject
     public CacheInterceptor cachingInterceptor(Environment env) {
         // 禁用缓存
-        if(disabled()) {
+        if (disabled()) {
             return new CacheInterceptor(null);
         }
         return new CacheInterceptor(JedisCmdHelper.createRedisOperations(redisUri(env)));

@@ -1,0 +1,247 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.summer.manage.dao.system.SysDeptDAO">
+    <sql id="selectDeptVo">
+        SELECT d.id, d.parent_id, d.ancestors, d.dept_name, d.order_num, d.leader, d.phone, d.email, d.status, d.is_del, d.created_by, d.created_at
+        FROM sys_dept d
+    </sql>
+    <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultType="com.summer.manage.entity.system.SysDept">
+    SELECT
+    *
+    FROM sys_dept
+    WHERE id = #{id}
+   </select>
+    <select id="selectDeptList" resultType="com.summer.manage.entity.system.SysDept">
+        <include refid="selectDeptVo"/>
+        where d.is_del = '0'
+        <if test="parentId != null and parentId != 0">
+            AND parent_id = #{parentId}
+        </if>
+        <if test="deptName != null and deptName != ''">
+            AND dept_name like concat('%', #{deptName}, '%')
+        </if>
+        <if test="status != null and status != ''">
+            AND status = #{status}
+        </if>
+        <!-- 数据范围过滤 -->
+        ${params.dataScope}
+        ORDER BY d.parent_id, d.order_num
+    </select>
+    <select id="selectDeptListByRoleId" resultType="java.lang.Integer">
+        SELECT d.id
+        FROM sys_dept d
+        LEFT JOIN sys_role_dept rd ON d.id = rd.dept_id
+        WHERE rd.role_id = #{roleId}
+        <if test="deptCheckStrictly">
+            AND d.id NOT IN (SELECT d.parent_id FROM sys_dept d INNER JOIN sys_role_dept rd ON d.id = rd.dept_id AND
+            rd.role_id = #{roleId})
+        </if>
+        ORDER BY d.parent_id, d.order_num
+    </select>
+    <select id="checkDeptNameUnique" resultType="com.summer.manage.entity.system.SysDept">
+        <include refid="selectDeptVo"/>
+        WHERE dept_name=#{deptName} AND parent_id = #{parentId} AND is_del = '0' LIMIT 1
+    </select>
+    <select id="selectNormalChildrenDeptById" resultType="java.lang.Integer">
+		SELECT COUNT(*) FROM sys_dept WHERE status = 0 AND is_del = '0' AND find_in_set(#{id}, ancestors)
+    </select>
+    <select id="selectChildrenDeptById" resultType="com.summer.manage.entity.system.SysDept">
+        SELECT * FROM sys_dept WHERE is_del = '0' AND find_in_set(#{id}, ancestors)
+    </select>
+    <select id="hasChildByDeptId" resultType="java.lang.Integer">
+        SELECT count(1) FROM sys_dept
+		WHERE is_del = '0' AND parent_id = #{deptId}
+    </select>
+    <select id="checkDeptExistUser" resultType="java.lang.Integer">
+		SELECT count(1) FROM sys_user WHERE dept_id = #{deptId} AND is_del = '0'
+    </select>
+    <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
+    DELETE FROM sys_dept
+    WHERE id = #{id}
+  </delete>
+    <update id="deleteDeptById">
+        UPDATE sys_dept SET is_del = '2' WHERE id = #{deptId}
+    </update>
+    <insert id="insert" keyColumn="id" keyProperty="id" parameterType="com.summer.manage.entity.system.SysDept"
+            useGeneratedKeys="true">
+    INSERT INTO sys_dept (parent_id, ancestors, dept_name,
+      order_num, leader, phone,
+      email, `status`, is_del, created_at,
+      updated_at, created_by, updated_by
+      )
+    VALUES (#{parentId}, #{ancestors}, #{deptName},
+      #{orderNum}, #{leader}, #{phone},
+      #{email}, #{status}, #{isDel}, #{createdAt},
+      #{updatedAt}, #{createdBy}, #{updatedBy}
+      )
+  </insert>
+    <insert id="insertSelective" keyColumn="id" keyProperty="id" parameterType="com.summer.manage.entity.system.SysDept"
+            useGeneratedKeys="true">
+        INSERT INTO sys_dept
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="parentId != null">
+                parent_id,
+            </if>
+            <if test="ancestors != null">
+                ancestors,
+            </if>
+            <if test="deptName != null">
+                dept_name,
+            </if>
+            <if test="orderNum != null">
+                order_num,
+            </if>
+            <if test="leader != null">
+                leader,
+            </if>
+            <if test="phone != null">
+                phone,
+            </if>
+            <if test="email != null">
+                email,
+            </if>
+            <if test="status != null">
+                `status`,
+            </if>
+            <if test="isDel != null">
+                is_del,
+            </if>
+            <if test="createdAt != null">
+                created_at,
+            </if>
+            <if test="updatedAt != null">
+                updated_at,
+            </if>
+            <if test="createdBy != null">
+                created_by,
+            </if>
+            <if test="updatedBy != null">
+                updated_by,
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="parentId != null">
+                #{parentId},
+            </if>
+            <if test="ancestors != null">
+                #{ancestors},
+            </if>
+            <if test="deptName != null">
+                #{deptName},
+            </if>
+            <if test="orderNum != null">
+                #{orderNum},
+            </if>
+            <if test="leader != null">
+                #{leader},
+            </if>
+            <if test="phone != null">
+                #{phone},
+            </if>
+            <if test="email != null">
+                #{email},
+            </if>
+            <if test="status != null">
+                #{status},
+            </if>
+            <if test="isDel != null">
+                #{isDel},
+            </if>
+            <if test="createdAt != null">
+                #{createdAt},
+            </if>
+            <if test="updatedAt != null">
+                #{updatedAt},
+            </if>
+            <if test="createdBy != null">
+                #{createdBy},
+            </if>
+            <if test="updatedBy != null">
+                #{updatedBy},
+            </if>
+        </trim>
+    </insert>
+    <update id="updateByPrimaryKeySelective" parameterType="com.summer.manage.entity.system.SysDept">
+        UPDATE sys_dept
+        <set>
+            <if test="parentId != null">
+                parent_id = #{parentId},
+            </if>
+            <if test="ancestors != null">
+                ancestors = #{ancestors},
+            </if>
+            <if test="deptName != null">
+                dept_name = #{deptName},
+            </if>
+            <if test="orderNum != null">
+                order_num = #{orderNum},
+            </if>
+            <if test="leader != null">
+                leader = #{leader},
+            </if>
+            <if test="phone != null">
+                phone = #{phone},
+            </if>
+            <if test="email != null">
+                email = #{email},
+            </if>
+            <if test="status != null">
+                `status` = #{status},
+            </if>
+            <if test="isDel != null">
+                is_del = #{isDel},
+            </if>
+            <if test="createdAt != null">
+                created_at = #{createdAt},
+            </if>
+            <if test="updatedAt != null">
+                updated_at = #{updatedAt},
+            </if>
+            <if test="createdBy != null">
+                created_by = #{createdBy},
+            </if>
+            <if test="updatedBy != null">
+                updated_by = #{updatedBy},
+            </if>
+        </set>
+        WHERE id = #{id}
+    </update>
+    <update id="updateByPrimaryKey" parameterType="com.summer.manage.entity.system.SysDept">
+    UPDATE sys_dept
+    SET parent_id = #{parentId},
+      ancestors = #{ancestors},
+      dept_name = #{deptName},
+      order_num = #{orderNum},
+      leader = #{leader},
+      phone = #{phone},
+      email = #{email},
+      `status` = #{status},
+      is_del = #{isDel},
+      created_at = #{createdAt},
+      updated_at = #{updatedAt},
+      created_by = #{createdBy},
+      updated_by = #{updatedBy}
+    WHERE id = #{id}
+  </update>
+    <update id="updateDeptChildren">
+        UPDATE sys_dept SET ancestors =
+        <foreach collection="children" item="item" index="index"
+                 separator=" " open="case id" close="end">
+            WHEN #{item.id} THEN #{item.ancestors}
+        </foreach>
+        WHERE id IN
+        <foreach collection="children" item="item" index="index"
+                 separator="," open="(" close=")">
+            #{item.id}
+        </foreach>
+    </update>
+    <update id="updateDeptStatus">
+        UPDATE sys_dept
+        <set>
+            <if test="status != null and status != ''">status = #{status},</if>
+            <if test="updatedBy != null and updatedBy != ''">updated_by = #{updatedBy},</if>
+            updated_at = now()
+        </set>
+        WHERE id IN (${ancestors})
+    </update>
+</mapper>

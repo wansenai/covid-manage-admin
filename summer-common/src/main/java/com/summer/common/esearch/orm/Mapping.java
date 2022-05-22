@@ -13,23 +13,40 @@ import java.lang.annotation.Target;
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
 public @interface Mapping {
-    /** ES操作 **/
+    /**
+     * ES操作
+     **/
     String operation() default IDynamicES.DEFAULT;
 
-    /** INDICES 类似于库,当为空时取 name 的值 **/
+    /**
+     * INDICES 类似于库,当为空时取 name 的值
+     **/
     String indices() default "";
-    /** INDEX HASH数 **/
+
+    /**
+     * INDEX HASH数
+     **/
     int partitions() default 1;
-    /** INDEX 分片数 **/
+
+    /**
+     * INDEX 分片数
+     **/
     int shards() default 3;
-    /** INDEX 备份数 **/
+
+    /**
+     * INDEX 备份数
+     **/
     int replicas() default 2;
 
-    /** 映射类型名  类似于表 **/
+    /**
+     * 映射类型名  类似于表
+     **/
     String name();
 
     boolean dynamic() default false;
 
-    /** 是否不区分大小写 false 区分，true 不区分 **/
+    /**
+     * 是否不区分大小写 false 区分，true 不区分
+     **/
     boolean sensitiveWord() default false;
 }

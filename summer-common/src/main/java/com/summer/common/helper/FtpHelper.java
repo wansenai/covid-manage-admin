@@ -18,16 +18,15 @@ import java.io.InputStreamReader;
 import java.util.List;
 
 public final class FtpHelper {
-    private static Logger LOG = LoggerFactory.getLogger(FtpHelper.class);
-    private final static int TIME_OUT = 10000;
-    private final static String FTP_TYPE = "sftp";
-
     //覆盖
     public static final int OVERWRITE = 0;
     //断点续传
     public static final int RESUME = 1;
     //追加
     public static final int APPEND = 2;
+    private final static int TIME_OUT = 10000;
+    private final static String FTP_TYPE = "sftp";
+    private static Logger LOG = LoggerFactory.getLogger(FtpHelper.class);
 
 
     private FtpHelper() {
@@ -35,22 +34,27 @@ public final class FtpHelper {
 
     // 从ftp读取文件内容
     public static String readAsString(String host, int port, String username, String password, String filePath) {
-        FtpStream stream = null; InputStream is = null;
+        FtpStream stream = null;
+        InputStream is = null;
         try {
             stream = readAsStream(host, port, username, password);
             is = stream.read(filePath);
             return BytesHelper.string(is);
-        }  finally {
+        } finally {
             BytesHelper.close(is);
             if (null != stream) {
                 stream.close();
             }
         }
     }
+
     // 从ftp读取每行数据
     public static List<String> readLines(String host, int port, String username, String password, String filePath) {
         List<String> lines = Lists.newArrayList();
-        FtpStream stream = null; InputStream is = null; BufferedReader reader = null; String line;
+        FtpStream stream = null;
+        InputStream is = null;
+        BufferedReader reader = null;
+        String line;
         try {
             stream = readAsStream(host, port, username, password);
             is = stream.read(filePath);
@@ -97,7 +101,7 @@ public final class FtpHelper {
             stream = new FtpStream(session, channel);
             if (OVERWRITE == mode) {
                 stream.write(is, filePath);
-            } else if (RESUME == mode){
+            } else if (RESUME == mode) {
                 stream.resume(is, filePath);
             } else if (APPEND == mode) {
                 stream.append(is, filePath);
@@ -138,10 +142,11 @@ public final class FtpHelper {
         session.connect();
         return session;
     }
-    private static void mkdir(String filePath, ChannelSftp channel) throws Exception{
-        String dirPath = filePath.substring(0,filePath.lastIndexOf("/"));
-        String[] folders = dirPath.split( "/" );
-        for ( String folder : folders ) {
+
+    private static void mkdir(String filePath, ChannelSftp channel) throws Exception {
+        String dirPath = filePath.substring(0, filePath.lastIndexOf("/"));
+        String[] folders = dirPath.split("/");
+        for (String folder : folders) {
             if (folder.length() > 0) {
                 try {
                     channel.cd(folder);
@@ -152,6 +157,7 @@ public final class FtpHelper {
             }
         }
     }
+
     private static class FtpStream {
         final Session session;
         final ChannelSftp channel;
@@ -161,6 +167,7 @@ public final class FtpHelper {
             this.channel = channel;
             channel.connect();
         }
+
         private void close() {
             if (channel != null) {
                 channel.exit();
@@ -169,6 +176,7 @@ public final class FtpHelper {
                 session.disconnect();
             }
         }
+
         private InputStream read(String filePath) {
             try {
                 return channel.get(filePath);
@@ -176,6 +184,7 @@ public final class FtpHelper {
                 throw new RuntimeException("read from ftp error ", e);
             }
         }
+
         private void write(InputStream is, String filePath) {
             try {
                 mkdir(filePath, channel);
@@ -184,6 +193,7 @@ public final class FtpHelper {
                 throw new RuntimeException("write to ftp error ", e);
             }
         }
+
         private void resume(InputStream is, String filePath) {
             try {
                 channel.put(is, filePath, 1);
@@ -191,6 +201,7 @@ public final class FtpHelper {
                 throw new RuntimeException("resume to ftp error ", e);
             }
         }
+
         private void append(InputStream is, String filePath) {
             try {
                 channel.put(is, filePath, 2);

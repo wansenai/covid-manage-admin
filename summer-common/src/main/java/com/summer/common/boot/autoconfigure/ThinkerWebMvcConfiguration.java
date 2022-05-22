@@ -8,7 +8,6 @@ import org.springframework.context.annotation.Configuration;
 
 /**
  * 自定义webMvc自动配置
- *
  */
 @Configuration
 public class ThinkerWebMvcConfiguration {

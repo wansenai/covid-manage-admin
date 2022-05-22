@@ -10,10 +10,14 @@ import java.lang.annotation.Target;
 @Target(ElementType.FIELD)
 @Retention(RetentionPolicy.RUNTIME)
 public @interface Property {
-    /** 映射字段类型 **/
+    /**
+     * 映射字段类型
+     **/
     Typical type();
 
-    /** 是否加入全文检索 **/
+    /**
+     * 是否加入全文检索
+     **/
     boolean all() default false;
 
     /**
@@ -22,6 +26,8 @@ public @interface Property {
      **/
     String analyzer() default "";
 
-    /** 字段描述 **/
+    /**
+     * 字段描述
+     **/
     String desc() default "";
 }

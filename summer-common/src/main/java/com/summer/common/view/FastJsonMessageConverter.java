@@ -14,11 +14,11 @@ public final class FastJsonMessageConverter extends FastJsonHttpMessageConverter
         super.setDefaultCharset(IOUtils.UTF8);
         super.getFastJsonConfig().setSerializerFeatures(JsonHelper.serializerFeatures());
         super.setSupportedMediaTypes(Arrays.asList(MediaType.APPLICATION_JSON,
-                MediaType.APPLICATION_JSON_UTF8,
-                MediaType.TEXT_XML,
-                MediaType.APPLICATION_XML,
-                MediaType.APPLICATION_FORM_URLENCODED,
-                // spring-boot actuator V2_JSON
-                MediaType.valueOf("application/vnd.spring-boot.actuator.v2+json;charset=UTF-8")));
+                                                   MediaType.APPLICATION_JSON_UTF8,
+                                                   MediaType.TEXT_XML,
+                                                   MediaType.APPLICATION_XML,
+                                                   MediaType.APPLICATION_FORM_URLENCODED,
+                                                   // spring-boot actuator V2_JSON
+                                                   MediaType.valueOf("application/vnd.spring-boot.actuator.v2+json;charset=UTF-8")));
     }
 }

@@ -31,21 +31,30 @@ import java.util.Map;
 public abstract class IBatisConfigSupport {
     private static final Map<String, DataSource> dsMap = Maps.newConcurrentMap();
 
-    /** 添加多个数据源 **/
+    /**
+     * 添加多个数据源
+     **/
     protected abstract void addMultiDataSource(Environment env, Map<String, DataSource> dsMap);
 
-    /** 部分事务提交的处理，用户可根据需要自定义 **/
+    /**
+     * 部分事务提交的处理，用户可根据需要自定义
+     **/
     protected ITransCompensate transCompensate(ApplicationContext context) {
-        return new ITransCompensate() {};
+        return new ITransCompensate() {
+        };
     }
 
-    /** Mapper.xml 包路径，默认为 Mapper.java 的路径**/
+    /**
+     * Mapper.xml 包路径，默认为 Mapper.java 的路径
+     **/
     @SuppressWarnings("WeakerAccess")
     protected String mapperLocations() {
         return "/**.xml";
     }
 
-    /** 创建数据源方法 MYSQL_URI=jdbc:mysql://{host:port}/{db}?user={username}&password={password} **/
+    /**
+     * 创建数据源方法 MYSQL_URI=jdbc:mysql://{host:port}/{db}?user={username}&password={password}
+     **/
     protected HikariDataSource hikariDataSource(String uri) {
         return DataSourceManager.newborn(uri);
     }
@@ -88,6 +97,7 @@ public abstract class IBatisConfigSupport {
                 DataSourceManager.get().setSpringTransaction(true);
                 return super.doGetTransaction();
             }
+
             @Override
             protected void doCleanupAfterCompletion(Object transaction) {
                 super.doCleanupAfterCompletion(transaction);
@@ -121,11 +131,11 @@ public abstract class IBatisConfigSupport {
     }
 
     private Map<Object, Object> coverTargetDataSources(Map<String, DataSource> dsMap) {
-        if(null == dsMap.get(IDynamicDS.DEFAULT)) {
+        if (null == dsMap.get(IDynamicDS.DEFAULT)) {
             throw new MySqlException("Dynamic datasource must have IDynamicDS.DEFAULT ds and have the crud authority...");
         }
         Map<Object, Object> dsm = Maps.newHashMap();
-        for(Map.Entry<String, DataSource> entry: dsMap.entrySet()) {
+        for (Map.Entry<String, DataSource> entry : dsMap.entrySet()) {
             dsm.put(entry.getKey(), entry.getValue());
         }
         return dsm;
@@ -140,7 +150,7 @@ public abstract class IBatisConfigSupport {
         @Override
         public Health health() {
             Health.Builder builder = Health.up();
-            for(Map.Entry<String, DataSource> entry: dsMap.entrySet()) {
+            for (Map.Entry<String, DataSource> entry : dsMap.entrySet()) {
                 builder.withDetail(entry.getKey(), entry.getValue().toString());
             }
             return builder.build();

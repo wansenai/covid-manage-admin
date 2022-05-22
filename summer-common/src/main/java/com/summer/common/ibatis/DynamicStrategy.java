@@ -9,24 +9,29 @@ import java.util.Arrays;
 import java.util.LinkedHashSet;
 
 public interface DynamicStrategy {
-    LinkedHashSet<Target> strategy();
-
-    /** 目标策略生成LinkedHashSet **/
-    static LinkedHashSet<Target> ofTargetSet(Target ...targets) {
+    /**
+     * 目标策略生成LinkedHashSet
+     **/
+    static LinkedHashSet<Target> ofTargetSet(Target... targets) {
         LinkedHashSet<Target> targetSet = Sets.newLinkedHashSet();
-        if(!CollectsHelper.isNullOrEmpty(targets)) {
+        if (!CollectsHelper.isNullOrEmpty(targets)) {
             targetSet.addAll(Arrays.asList(targets));
         }
         return targetSet;
     }
-    /** 表后缀生成LinkedHashSet **/
-    static LinkedHashSet<String> ofTableSuffixSet(String ...tableSuffixes) {
+
+    /**
+     * 表后缀生成LinkedHashSet
+     **/
+    static LinkedHashSet<String> ofTableSuffixSet(String... tableSuffixes) {
         LinkedHashSet<String> tableSuffixSet = Sets.newLinkedHashSet();
-        if(!CollectsHelper.isNullOrEmpty(tableSuffixes)) {
+        if (!CollectsHelper.isNullOrEmpty(tableSuffixes)) {
             tableSuffixSet.addAll(Arrays.asList(tableSuffixes));
         }
         return tableSuffixSet;
     }
+
+    LinkedHashSet<Target> strategy();
 
     class Target {
         final String datasource;

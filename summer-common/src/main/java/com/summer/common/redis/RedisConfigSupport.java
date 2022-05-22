@@ -9,7 +9,13 @@ import org.springframework.core.env.Environment;
 import java.util.Map;
 
 public abstract class RedisConfigSupport {
-    /** 添加多个Redis操作 **/
+    protected RedisConfigSupport() {
+        addMultiRedisOperations(SpringHelper.getEnvironment(), RedisFactory.REDIS_MAP);
+    }
+
+    /**
+     * 添加多个Redis操作
+     **/
     protected abstract void addMultiRedisOperations(Environment env, Map<String, RedisOperations> redisMap);
 
     /**
@@ -20,12 +26,8 @@ public abstract class RedisConfigSupport {
         return JedisCmdHelper.createRedisOperations(uri);
     }
 
-    protected RedisConfigSupport() {
-        addMultiRedisOperations(SpringHelper.getEnvironment(), RedisFactory.REDIS_MAP);
-    }
-
     @Bean
-    public RedisHealth redisHealth(){
+    public RedisHealth redisHealth() {
         return new RedisHealth();
     }
 
@@ -33,7 +35,7 @@ public abstract class RedisConfigSupport {
         @Override
         public Health health() {
             Health.Builder builder = Health.up();
-            for(Map.Entry<String, RedisOperations> entry: RedisFactory.REDIS_MAP.entrySet()) {
+            for (Map.Entry<String, RedisOperations> entry : RedisFactory.REDIS_MAP.entrySet()) {
                 builder.withDetail(entry.getKey(), entry.getValue().isOk());
             }
             return builder.build();

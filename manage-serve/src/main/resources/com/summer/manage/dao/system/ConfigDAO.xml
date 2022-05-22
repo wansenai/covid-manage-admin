@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.summer.manage.dao.system.ConfigDAO">
+    <sql id="selectConfigVo">
+        select id, config_name, config_key, config_value, config_type, created_by, created_at, updated_by, updated_at, remark
+		from sys_config
+    </sql>
+    <insert id="insert">
+        INSERT INTO sys_config (
+        <if test="configName != null and configName != '' ">config_name,</if>
+        <if test="configKey != null and configKey != '' ">config_key,</if>
+        <if test="configValue != null and configValue != '' ">config_value,</if>
+        <if test="configType != null and configType != '' ">config_type,</if>
+        <if test="createdBy != null and createdBy != ''">created_by,</if>
+        <if test="remark != null and remark != ''">remark,</if>
+        created_at
+        )VALUES(
+        <if test="configName != null and configName != ''">#{configName},</if>
+        <if test="configKey != null and configKey != ''">#{configKey},</if>
+        <if test="configValue != null and configValue != ''">#{configValue},</if>
+        <if test="configType != null and configType != ''">#{configType},</if>
+        <if test="createdBy != null and createdBy != ''">#{createdBy},</if>
+        <if test="remark != null and remark != ''">#{remark},</if>
+        now()
+        )
+    </insert>
+    <update id="update">
+        UPDATE sys_config
+        <set>
+            <if test="configName != null and configName != ''">config_name = #{configName},</if>
+            <if test="configKey != null and configKey != ''">config_key = #{configKey},</if>
+            <if test="configValue != null and configValue != ''">config_value = #{configValue},</if>
+            <if test="configType != null and configType != ''">config_type = #{configType},</if>
+            <if test="updatedBy != null and updatedBy != ''">updated_by = #{updatedBy},</if>
+            <if test="remark != null">remark = #{remark},</if>
+            updated_at = now()
+        </set>
+        WHERE id = #{id}
+    </update>
+    <delete id="deleteConfigByIds">
+        DELETE FROM sys_config WHERE id IN
+        <foreach item="configId" collection="array" open="(" separator="," close=")">
+            #{configId}
+        </foreach>
+    </delete>
+    <select id="selectConfigValue" resultType="java.lang.String">
+		SELECT config_value
+		FROM sys_config
+		WHERE config_key = #{configKey}
+	</select>
+    <select id="listConfig" resultType="com.summer.manage.entity.system.SysConfig">
+        <include refid="selectConfigVo"/>
+        <where>
+            <if test="configName != null and configName != ''">
+                AND config_name LIKE concat('%', #{configName}, '%')
+            </if>
+            <if test="configType != null and configType != ''">
+                AND config_type = #{configType}
+            </if>
+            <if test="configKey != null and configKey != ''">
+                AND config_key LIKE concat('%', #{configKey}, '%')
+            </if>
+            <if test="beginTime != null and beginTime != ''"><!-- 开始时间检索 -->
+                and date_format(created_at,'%y%m%d') &gt;= date_format(#{beginTime},'%y%m%d')
+            </if>
+            <if test="endTime != null and endTime != ''"><!-- 结束时间检索 -->
+                and date_format(created_at,'%y%m%d') &lt;= date_format(#{endTime},'%y%m%d')
+            </if>
+        </where>
+        ORDER BY created_at LIMIT #{offset}, #{size};
+    </select>
+    <select id="listConfigCount" resultType="java.lang.Long">
+        SELECT COUNT(*) FROM sys_config
+        <where>
+            <if test="configName != null and configName != ''">
+                AND config_name LIKE concat('%', #{configName}, '%')
+            </if>
+            <if test="configType != null and configType != ''">
+                AND config_type = #{configType}
+            </if>
+            <if test="configKey != null and configKey != ''">
+                AND config_key LIKE concat('%', #{configKey}, '%')
+            </if>
+            <if test="beginTime != null and beginTime != ''"><!-- 开始时间检索 -->
+                and date_format(created_at,'%y%m%d') &gt;= date_format(#{beginTime},'%y%m%d')
+            </if>
+            <if test="endTime != null and endTime != ''"><!-- 结束时间检索 -->
+                and date_format(created_at,'%y%m%d') &lt;= date_format(#{endTime},'%y%m%d')
+            </if>
+        </where>
+    </select>
+    <select id="selectById" resultType="com.summer.manage.entity.system.SysConfig">
+		SELECT * FROM sys_config WHERE id = #{id}
+	</select>
+    <select id="checkConfigKeyUnique" resultType="com.summer.manage.entity.system.SysConfig">
+        <include refid="selectConfigVo"/>
+        WHERE config_key = #{configKey} LIMIT 1
+    </select>
+</mapper>

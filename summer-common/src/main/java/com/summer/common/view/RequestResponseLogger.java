@@ -2,13 +2,13 @@ package com.summer.common.view;
 
 import com.alibaba.fastjson.JSON;
 import com.google.common.collect.Sets;
-import com.summer.common.initializ.SpringBootApplication;
-import com.summer.common.support.IConstant;
-import com.summer.common.support.OperationLog;
 import com.summer.common.helper.BytesHelper;
 import com.summer.common.helper.SpringHelper;
 import com.summer.common.helper.StringHelper;
 import com.summer.common.helper.ThreadFactoryHelper;
+import com.summer.common.initializ.SpringBootApplication;
+import com.summer.common.support.IConstant;
+import com.summer.common.support.OperationLog;
 import com.summer.common.view.parser.RequestSession;
 import javafx.util.Pair;
 import org.slf4j.Logger;
@@ -30,11 +30,17 @@ final class RequestResponseLogger {
                                                                           MediaType.IMAGE_PNG_VALUE,
                                                                           MediaType.APPLICATION_PDF_VALUE,
                                                                           MediaType.APPLICATION_OCTET_STREAM_VALUE);
+    private static final Logger LOG = LoggerFactory.getLogger("JSON.parse");
+    private final boolean isSR;
+    private final Pair<String, byte[]> result;
+    private final RequestSession session;
+    private final long endTime;
 
-    private final boolean isSR; private final Pair<String, byte[]> result;
-    private final RequestSession session; private final long endTime;
     RequestResponseLogger(boolean isSR, RequestSession session, Pair<String, byte[]> result) {
-        this.isSR = isSR; this.session = session; this.result = result; this.endTime = System.currentTimeMillis();
+        this.isSR = isSR;
+        this.session = session;
+        this.result = result;
+        this.endTime = System.currentTimeMillis();
     }
 
     RequestResponseLogger submit(boolean logged) {
@@ -47,11 +53,15 @@ final class RequestResponseLogger {
         }
         return this;
     }
+
     // 清理流资源
     void clearGZIP(final GZIPOutputStream gzip, final ByteArrayOutputStream bos) {
-        LOG_EXECUTOR.submit(() -> { BytesHelper.close(gzip); BytesHelper.close(bos); });
+        LOG_EXECUTOR.submit(() -> {
+            BytesHelper.close(gzip);
+            BytesHelper.close(bos);
+        });
     }
-    private static final Logger LOG = LoggerFactory.getLogger("JSON.parse");
+
     private OperationLog newOperationLog() {
         // 非文件
         if (!FILE_RESPONSE_TYPE.contains(result.getKey())) {
@@ -60,7 +70,7 @@ final class RequestResponseLogger {
                 try {
                     if (response.startsWith("[") && response.endsWith("]")) {
                         return OperationLog.newborn(session, endTime, JSON.parseArray(response));
-                    } else if (response.startsWith("{") && response.endsWith("}")){
+                    } else if (response.startsWith("{") && response.endsWith("}")) {
                         return OperationLog.newborn(session, endTime, JSON.parseObject(response));
                     } else {
                         return OperationLog.newborn(session, endTime, response);

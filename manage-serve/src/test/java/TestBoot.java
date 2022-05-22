@@ -9,7 +9,7 @@ import org.junit.Test;
 public class TestBoot {
 
     @Test
-    public void testMapper(){
+    public void testMapper() {
         System.out.println(RandomStringUtils.randomNumeric(6));
     }
 }

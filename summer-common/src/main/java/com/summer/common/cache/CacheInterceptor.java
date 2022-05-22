@@ -6,9 +6,9 @@ import com.google.common.collect.Sets;
 import com.summer.common.core.CacheSerialize;
 import com.summer.common.core.RpcException;
 import com.summer.common.helper.BeanHelper;
+import com.summer.common.helper.BytesHelper;
 import com.summer.common.helper.EncryptHelper;
 import com.summer.common.helper.GenericHelper;
-import com.summer.common.helper.BytesHelper;
 import com.summer.common.helper.StringHelper;
 import com.summer.common.redis.RedisOperations;
 import javafx.util.Pair;
@@ -69,7 +69,8 @@ public class CacheInterceptor {
         } catch (Throwable cause) {
             if (!(cause instanceof RpcException)) {
                 LOG.warn("Cache aspect invoke error ", cause);
-            }  throw cause;
+            }
+            throw cause;
         }
     }
 
@@ -84,16 +85,16 @@ public class CacheInterceptor {
         boolean assignable = stg.cacheGenericType().isAssignableFrom(rt);
         boolean serializable = Serializable.class.equals(stg.cacheGenericType());
         // 返回 optional | 集合类型
-        if(collection || optional) {
+        if (collection || optional) {
             Type genericType = method.getGenericReturnType();
             rt = GenericHelper.type(genericType);
         }
         boolean p = single || BeanHelper.isPrimitiveType(rt);
         // 类型相同 || 基础类型且serializable || 非基础类型且返回子类
-        if(rt.equals(stg.cacheGenericType()) || (p && serializable && assignable) || (!p && !serializable && assignable)) {
+        if (rt.equals(stg.cacheGenericType()) || (p && serializable && assignable) || (!p && !serializable && assignable)) {
             String typeName = stg.cacheName();
             List<String> realKeys = CachedStrategy.realKeys(typeName, stg.inGet(exec.cmd(), point.getSignature(), method, args));
-            if(collection && Command.Multi == exec.cmd()) {
+            if (collection && Command.Multi == exec.cmd()) {
                 Pair<Set<String>, List<Object>> pair;
                 try {
                     pair = redisOperations.multiGet(realKeys, rt);
@@ -101,15 +102,16 @@ public class CacheInterceptor {
                     LOG.warn("MultiGet from redis cache error ", e);
                     pair = new Pair<>(Sets.newHashSet(realKeys), Lists.newArrayList());
                 }
-                Set<String> overflow = pair.getKey(); List<Object> objects = pair.getValue();
-                if(overflow.size() > 0) {
+                Set<String> overflow = pair.getKey();
+                List<Object> objects = pair.getValue();
+                if (overflow.size() > 0) {
                     @SuppressWarnings("unchecked")
                     Supplier<Map<String, ?>> supplier = () -> stg.multiRs(typeName, point, method, args, overflow);
                     String callerS = point.getSignature().getDeclaringTypeName() + overflow.toString();
                     String callerKey = EncryptHelper.toHex(BytesHelper.utf8Bytes(callerS));
                     Object rs = StormTask.apply(callerKey, multiCaller(typeName, exec.expire(), overflow, supplier));
-                    if(!isNone(rs)) {
-                        objects.addAll((Collection<?>)rs);
+                    if (!isNone(rs)) {
+                        objects.addAll((Collection<?>) rs);
                     }
                 }
                 return objects;
@@ -127,8 +129,8 @@ public class CacheInterceptor {
 
     private boolean isNone(Object value) {
         return null == value
-                || ((value instanceof String) && ((String)value).length() < 1)
-                || ((value instanceof Collection) && ((Collection<?>)value).isEmpty());
+                || ((value instanceof String) && ((String) value).length() < 1)
+                || ((value instanceof Collection) && ((Collection<?>) value).isEmpty());
     }
 
     private Object optVal(boolean optional, Object value) {
@@ -143,9 +145,10 @@ public class CacheInterceptor {
         redisOperations.clear(CachedStrategy.realKeys(stg.cacheName(), keys).toArray(new String[0]));
         return result;
     }
+
     // 获取缓存数据
     private Object valueFromCache(String key, Class<?> type, boolean collection) {
-        if(StringHelper.isBlank(key)) {
+        if (StringHelper.isBlank(key)) {
             return null;
         }
         // 返回列表数据
@@ -159,12 +162,12 @@ public class CacheInterceptor {
     }
 
     private Method joinPointMethod(ProceedingJoinPoint point) {
-        return ((MethodSignature)point.getSignature()).getMethod();
+        return ((MethodSignature) point.getSignature()).getMethod();
     }
 
     private Pair<Cachedable, ? extends CachedStrategy> maker(Method method) throws IllegalAccessException, InstantiationException {
         Pair<Cachedable, ? extends CachedStrategy> ckm = MCE_MAP.get(method);
-        if(null == ckm) {
+        if (null == ckm) {
             synchronized (MCE_MAP) {
                 ckm = MCE_MAP.get(method);
                 if (null == ckm) {
@@ -172,7 +175,7 @@ public class CacheInterceptor {
                     // 有注解且缓存非禁用
                     if (null != cable && !cable.disabled()) {
                         // 当需要击中缓存时，方法返回值不能为void
-                        if(Command.InGet == cable.cmd()) {
+                        if (Command.InGet == cable.cmd()) {
                             Class<?> returnType = method.getReturnType();
                             if (Void.TYPE.equals(returnType)) {
                                 ckm = new Pair<>(null, null);
@@ -196,8 +199,8 @@ public class CacheInterceptor {
         return () -> {
             try {
                 Map<String, ?> rsMap = supplier.get();
-                if(null != rsMap && within.size() > 0) {
-                    for(Map.Entry<String, ?> entry: rsMap.entrySet()) {
+                if (null != rsMap && within.size() > 0) {
+                    for (Map.Entry<String, ?> entry : rsMap.entrySet()) {
                         String key = CachedStrategy.realKeys(typeName, entry.getKey()).get(0);
                         caching(expire, key, entry.getValue());
                     }
@@ -215,7 +218,7 @@ public class CacheInterceptor {
         return () -> {
             try {
                 Object val = point.proceed(args);
-                if(null != val && !StringHelper.isBlank(key)) {
+                if (null != val && !StringHelper.isBlank(key)) {
                     caching(expire, key, val);
                 }
                 return val;
@@ -246,6 +249,7 @@ public class CacheInterceptor {
 
     private static class StormTask {
         private static final ConcurrentMap<String, FutureTask<Object>> STORM_MAP = Maps.newConcurrentMap();
+
         static Object apply(String key, Callable<Object> caller) throws Throwable {
             String callerKey = StringHelper.isBlank(key) ? UUID.randomUUID().toString() : key;
             try {
@@ -255,16 +259,17 @@ public class CacheInterceptor {
                     FutureTask<Object> task = new FutureTask<>(caller);
                     future = STORM_MAP.putIfAbsent(callerKey, task);
                     if (null == future) {
-                        future = task; task.run();
+                        future = task;
+                        task.run();
                     }
                 }
                 Object result = future.get();
-                if((result instanceof Throwable)) {
-                    throw (Throwable)result;
+                if ((result instanceof Throwable)) {
+                    throw (Throwable) result;
                 } else {
                     return result;
                 }
-            } finally{
+            } finally {
                 STORM_MAP.remove(callerKey);
             }
         }

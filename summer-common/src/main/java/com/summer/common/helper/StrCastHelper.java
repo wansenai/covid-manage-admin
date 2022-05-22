@@ -11,14 +11,21 @@ import java.util.HashMap;
 import java.util.List;
 
 public final class StrCastHelper {
+    private static final String BLANK = "";
+
     private StrCastHelper() {
     }
-    private static final String BLANK = "";
-    /** Form Data To Object **/
+
+    /**
+     * Form Data To Object
+     **/
     public static <T> T form2Bean(String parameters, Class<T> clazz) {
         return BeanHelper.map2Bean(form2Json(parameters), clazz);
     }
-    /** Form Data to json **/
+
+    /**
+     * Form Data to json
+     **/
     public static JSONObject form2Json(String parameters) {
         try {
             if (StringHelper.isBlank(parameters)) {
@@ -31,7 +38,10 @@ public final class StrCastHelper {
             throw new RuntimeException("form parameters to json error....", e);
         }
     }
-    /** XML Data to json **/
+
+    /**
+     * XML Data to json
+     **/
     public static JSONObject xml2Json(String xml) {
         try {
             Document document = DocumentHelper.parseText(xml);
@@ -43,18 +53,20 @@ public final class StrCastHelper {
         }
     }
 
-    private static void recursiveNode(MultiMap multiMap, Element node){
+    private static void recursiveNode(MultiMap multiMap, Element node) {
         multiMap.add(node.getName(), node.getTextTrim());
         //递归遍历当前节点所有的子节点
         @SuppressWarnings("unchecked")
         List<Element> elements = node.elements();
-        for(Element element: elements){
+        for (Element element : elements) {
             recursiveNode(multiMap, element);
         }
     }
 
     private static void decodeTo(String content, MultiMap map) {
-        String key = null, value; int mark = -1; boolean encoded = false;
+        String key = null, value;
+        int mark = -1;
+        boolean encoded = false;
         for (int i = 0; i < content.length(); i++) {
             char c = content.charAt(i);
             switch (c) {
@@ -148,7 +160,8 @@ public final class StrCastHelper {
     private static int parseInt(String s, int offset) throws NumberFormatException {
         int value = 0, base = 16;
         for (int i = 0; i < 2; i++) {
-            char c = s.charAt(offset + i); int digit = c - '0';
+            char c = s.charAt(offset + i);
+            int digit = c - '0';
             if (digit < 0 || digit >= base || digit >= 10) {
                 digit = 10 + c - 'A';
                 if (digit < 10 || digit >= base) digit = 10 + c - 'a';
@@ -161,10 +174,14 @@ public final class StrCastHelper {
     }
 
     private static class Utf8StringBuffer {
-        StringBuffer _buffer; int _more, _bits; boolean _errors;
+        StringBuffer _buffer;
+        int _more, _bits;
+        boolean _errors;
+
         Utf8StringBuffer(int capacity) {
             _buffer = new StringBuffer(capacity);
         }
+
         void append(byte b) {
             if (b >= 0) {
                 if (_more > 0) {
@@ -216,13 +233,16 @@ public final class StrCastHelper {
         boolean isError() {
             return _errors || _more > 0;
         }
+
         public String toString() {
             return _buffer.toString();
         }
     }
 
     private static class MultiMap extends HashMap<String, Object> implements Cloneable {
-        MultiMap() { }
+        MultiMap() {
+        }
+
         void add(String name, Object value) {
             Object lo = super.get(name);
             Object ln = LazyList.add(lo, value);
@@ -231,7 +251,9 @@ public final class StrCastHelper {
     }
 
     private static class LazyList implements Cloneable, Serializable {
-        private LazyList() {}
+        private LazyList() {
+        }
+
         static Object add(Object list, Object item) {
             if (list == null) {
                 if (item instanceof List || item == null) {

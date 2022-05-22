@@ -17,11 +17,12 @@ import java.util.Set;
 public final class RedisFactory {
     static final Map<String, RedisOperations> REDIS_MAP = Maps.newConcurrentMap();
 
+    RedisFactory() {
+    }
+
     public static RedisOperations get(String dynamicRedis) {
         return REDIS_MAP.get(dynamicRedis);
     }
-
-    RedisFactory() {}
 
     static ShardInfo shardInfo(String host, int port, String name, boolean ssl, int db, String password) {
         return new ShardInfo(host, port, name, ssl, db, password);
@@ -38,10 +39,11 @@ public final class RedisFactory {
             } catch (Exception e) {
                 throw new RedisException("Redis set db=" + db + "error...", e);
             }
-            if(!StringHelper.isBlank(password)) {
+            if (!StringHelper.isBlank(password)) {
                 super.setPassword(password);
             }
         }
+
         ShardInfo ofTimeout(int timeout) {
             if (timeout > 0) {
                 super.setSoTimeout(timeout);
@@ -58,10 +60,11 @@ public final class RedisFactory {
         final String name;
         final String password;
         final Set<HostAndPort> hapSet = Sets.newHashSet();
+
         // URI=REDIS_URI={SCHEME}://{NAME}:{PWD}@{HOST:PORT},{HOST:PORT}/{DB}
         UriInfo(String uri) {
             LOG.info("redis uri: {}", uri);
-            if(StringHelper.isBlank(uri)) {
+            if (StringHelper.isBlank(uri)) {
                 throw new RedisException("Redis uri must not null/empty.....");
             }
             try {
@@ -69,7 +72,7 @@ public final class RedisFactory {
                 int pathIdx = uri.lastIndexOf("/");
                 this.dbIdx = Integer.parseInt(uri.substring(pathIdx + 1));
                 String[] locations = uri.substring(uri.indexOf("@") + 1, pathIdx).split(",");
-                for(String location: locations) {
+                for (String location : locations) {
                     hapSet.add(HostAndPort.parseString(location));
                 }
                 String[] uis = StringHelper.substringBetween(uri, "://", "@").split(":");

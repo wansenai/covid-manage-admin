@@ -20,6 +20,7 @@ public enum Typical implements StringEnum {
     Object("object");
 
     private final String type;
+
     Typical(String type) {
         this.type = type;
     }

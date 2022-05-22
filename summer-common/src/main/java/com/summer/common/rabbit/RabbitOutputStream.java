@@ -30,6 +30,7 @@ public final class RabbitOutputStream extends OutputStream {
     private final Channel channel;
     private final Future<?> task;
     private boolean loop = true;
+
     public RabbitOutputStream(String rabbitURI) throws IOException {
         this.connection = RabbitFactory.create(rabbitURI);
         this.channel = connection.createChannel();
@@ -37,8 +38,16 @@ public final class RabbitOutputStream extends OutputStream {
         this.channel.exchangeDeclare(TUNNEL, "direct", true);
         this.task = startingWrite2Rabbit();
     }
-    @Override public void write(@SuppressWarnings("NullableProblems") byte[] ml) {
-        if(null == ml || ml.length < 1) return;
+
+    private static void degrade2console(byte[] ml, Throwable cause) {
+        System.out.println("LOG by rabbit error log degrade to console");
+        if (null != cause) cause.printStackTrace();
+        System.out.println(BytesHelper.string(ml));
+    }
+
+    @Override
+    public void write(@SuppressWarnings("NullableProblems") byte[] ml) {
+        if (null == ml || ml.length < 1) return;
         String log = BytesHelper.string(ml);
         try {
             if (log.startsWith(OL)) {
@@ -55,7 +64,8 @@ public final class RabbitOutputStream extends OutputStream {
         return executor.submit(() -> {
             do {
                 try {
-                    Pair<String, byte[]> pair = queue.take(); if(rabbitOk()) {
+                    Pair<String, byte[]> pair = queue.take();
+                    if (rabbitOk()) {
                         try {
                             AMQP.BasicProperties props = RabbitFactory.propertyOf(pair.getKey(), true);
                             channel.basicPublish(TUNNEL, TUNNEL, props, pair.getValue());
@@ -70,16 +80,18 @@ public final class RabbitOutputStream extends OutputStream {
         });
     }
 
-    @Override public void write(int b) {}
-    @Override public void close() {
-        this.task.cancel(true); BytesHelper.close(this.channel); BytesHelper.close(this.connection);
+    @Override
+    public void write(int b) {
+    }
+
+    @Override
+    public void close() {
+        this.task.cancel(true);
+        BytesHelper.close(this.channel);
+        BytesHelper.close(this.connection);
     }
 
     private boolean rabbitOk() {
         return null != connection && connection.isOpen() && null != this.channel && !this.channel.isOpen();
-    }
-    private static void degrade2console(byte[] ml, Throwable cause) {
-        System.out.println("LOG by rabbit error log degrade to console");
-        if(null != cause) cause.printStackTrace(); System.out.println(BytesHelper.string(ml));
     }
 }

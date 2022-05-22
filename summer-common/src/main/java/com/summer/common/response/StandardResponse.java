@@ -10,7 +10,6 @@ import java.lang.annotation.Target;
 /**
  * 响应结构体为{@link ResultSet}，使用注解代替手动写响应结构
  * 所有未标记类型均默认为该类型
- *
  */
 @Target({ElementType.METHOD, ElementType.ANNOTATION_TYPE})
 @Retention(RetentionPolicy.RUNTIME)

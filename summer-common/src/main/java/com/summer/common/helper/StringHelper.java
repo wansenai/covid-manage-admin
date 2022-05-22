@@ -14,12 +14,14 @@ import java.util.Map;
 import java.util.StringTokenizer;
 import java.util.regex.Pattern;
 
-/** 字符串工具类 **/
+/**
+ * 字符串工具类
+ **/
 public final class StringHelper {
     private static final Pattern pattern = Pattern.compile("^-?\\d+(\\.\\d+)?$");
+    private static final int INDEX_NOT_FOUND = -1;
     public static String EMPTY = "";
 
-    private static final int INDEX_NOT_FOUND = -1;
     private StringHelper() {
     }
 
@@ -96,27 +98,27 @@ public final class StringHelper {
     }
 
     public static List<String> list(String splitter, String src) {
-        if(EMPTY.equals(splitter) && !isBlank(src)) {
+        if (EMPTY.equals(splitter) && !isBlank(src)) {
             return Lists.newArrayList(src.split(splitter));
         }
         return Splitter.on(splitter).splitToList(defaultString(src));
     }
 
     public static Map<String, String> map(String src, String splitter, String separator) {
-        if(isBlank(src) || isBlank(splitter) || isBlank(separator)){
+        if (isBlank(src) || isBlank(splitter) || isBlank(separator)) {
             return Maps.newHashMap();
         }
         return Splitter.on(splitter).withKeyValueSeparator(separator).split(src);
     }
 
-    public static <T> String join(String splitter, T ...src) {
-        if(CollectsHelper.isNullOrEmpty(src)) {
+    public static <T> String join(String splitter, T... src) {
+        if (CollectsHelper.isNullOrEmpty(src)) {
             return EMPTY;
         }
         List<T> list = Lists.newArrayList();
-        for (T t: src) {
+        for (T t : src) {
             if (t instanceof Collection) {
-                list.addAll((Collection)t);
+                list.addAll((Collection) t);
             } else {
                 list.add(t);
             }
@@ -126,18 +128,20 @@ public final class StringHelper {
 
     @Deprecated
     public static <T> String join(Collection<T> src, String splitter) {
-        if(CollectsHelper.isNullOrEmpty(src)) {
+        if (CollectsHelper.isNullOrEmpty(src)) {
             return EMPTY;
         }
         return Joiner.on(splitter).join(src);
     }
 
-    /** 下划线转驼峰 **/
+    /**
+     * 下划线转驼峰
+     **/
     public static String underline2camel(String src) {
         if (isBlank(src)) {
             return StringHelper.EMPTY;
         }
-        if(src.contains("_")) {
+        if (src.contains("_")) {
             StringTokenizer tokenizer = new StringTokenizer(src, "_");
             StringBuilder sb = new StringBuilder();
             boolean firstTime = true;
@@ -157,8 +161,11 @@ public final class StringHelper {
             return src;
         }
     }
-    /** 驼峰转下划线 **/
-    public static String camel2Underline(String src){
+
+    /**
+     * 驼峰转下划线
+     **/
+    public static String camel2Underline(String src) {
         if (isBlank(src)) {
             return StringHelper.EMPTY;
         }
@@ -169,16 +176,18 @@ public final class StringHelper {
             if ('"' == c) {
                 continue;
             }
-            if (Character.isUpperCase(c)){
+            if (Character.isUpperCase(c)) {
                 sb.append("_").append(Character.toLowerCase(c));
-            }else{
+            } else {
                 sb.append(c);
             }
         }
         return sb.toString();
     }
 
-    /** 集合转换成IBatis中的IN参数 **/
+    /**
+     * 集合转换成IBatis中的IN参数
+     **/
     public static <T extends Serializable> String toIbatisIn(Collection<T> ids) {
         if (!CollectsHelper.isNullOrEmpty(ids)) {
             StringBuilder idsBuilder = new StringBuilder();
@@ -201,7 +210,9 @@ public final class StringHelper {
         return EMPTY;
     }
 
-    /** 替换EMOJI表情符 **/
+    /**
+     * 替换EMOJI表情符
+     **/
     public static String replaceEmoji(String source, String pad) {
         if (null == source || "".equals(source)) {
             return StringHelper.EMPTY;
@@ -215,7 +226,9 @@ public final class StringHelper {
         return sb.toString();
     }
 
-    /** 判断字符串是否包含EMOJI表情 **/
+    /**
+     * 判断字符串是否包含EMOJI表情
+     **/
     public static boolean containsEmoji(String source) {
         if (null == source || "".equals(source)) {
             return false;
@@ -229,6 +242,7 @@ public final class StringHelper {
         }
         return false;
     }
+
     private static boolean isEmoji(char code) {
         // 杂项符号与符号字体
         return (code >= 0x2600 && code <= 0x27BF)

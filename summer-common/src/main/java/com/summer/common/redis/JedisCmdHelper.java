@@ -16,7 +16,8 @@ import java.util.Set;
 public final class JedisCmdHelper {
     private static final int TIMEOUT = 3000, RETRIES = 5, POOL = 255;
 
-    private JedisCmdHelper() {}
+    private JedisCmdHelper() {
+    }
 
     /**
      * Redis连接地址  REDIS_URI={SCHEME}://{NAME}:{PWD}@{HOST:PORT},{HOST:PORT}/{DB}
@@ -51,7 +52,7 @@ public final class JedisCmdHelper {
 
     private static ShardedJedisPool createShardedJedisPool(RedisFactory.UriInfo info) {
         List<JedisShardInfo> shards = Lists.newArrayList();
-        for(HostAndPort hap: info.hapSet) {
+        for (HostAndPort hap : info.hapSet) {
             shards.add(RedisFactory.shardInfo(hap.getHost(), hap.getPort(), info.name, info.ssl, info.dbIdx, info.password)
                                    .ofTimeout(TIMEOUT));
         }
@@ -60,7 +61,7 @@ public final class JedisCmdHelper {
 
     private static JedisSentinelPool createJedisSentinelPool(RedisFactory.UriInfo info) {
         Set<String> sentinels = Sets.newHashSet();
-        for(HostAndPort hap: info.hapSet) {
+        for (HostAndPort hap : info.hapSet) {
             sentinels.add(hap.toString());
         }
         return new JedisSentinelPool(info.name, sentinels, PoolConfig.of(POOL), TIMEOUT, info.password, info.dbIdx);

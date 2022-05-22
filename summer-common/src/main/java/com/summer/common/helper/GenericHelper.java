@@ -3,7 +3,9 @@ package com.summer.common.helper;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 
-/** 获取泛型 **/
+/**
+ * 获取泛型
+ **/
 public final class GenericHelper {
     private GenericHelper() {
     }

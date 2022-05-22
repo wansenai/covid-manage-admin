@@ -17,17 +17,17 @@ import java.sql.SQLException;
 import java.util.Set;
 import java.util.concurrent.ConcurrentMap;
 
-/** 动态事务处理 **/
+/**
+ * 动态事务处理
+ **/
 public class DynamicTransaction implements Transaction {
     private static final Logger LOG = LoggerFactory.getLogger(DynamicTransaction.class);
-
-    private boolean defaultAutoCommit;
-    private boolean dynamicTransactional;
-    private Connection defaultConnection;
-
     private final DataSource dataSource;
     private final ITransCompensate compensate;
     private final ConcurrentMap<String, Pair<Boolean, Connection>> attachedMap = Maps.newConcurrentMap();
+    private boolean defaultAutoCommit;
+    private boolean dynamicTransactional;
+    private Connection defaultConnection;
 
     public DynamicTransaction(DataSource dataSource, ITransCompensate compensate) {
         this.dataSource = dataSource;
@@ -44,7 +44,7 @@ public class DynamicTransaction implements Transaction {
             Pair<Boolean, Connection> accPair = attachedMap.get(dsName);
             if (null == accPair) {
                 Connection connection = dataSource.getConnection();
-                if(null != connection) {
+                if (null != connection) {
                     boolean commit = connection.getAutoCommit();
                     connection.setAutoCommit(false);
                     accPair = new Pair<>(commit, connection);
@@ -66,7 +66,7 @@ public class DynamicTransaction implements Transaction {
             defaultConnection.commit();
         }
         // 有事务
-        if(DataSourceManager.get().hasSpringTransaction()) {
+        if (DataSourceManager.get().hasSpringTransaction()) {
             //事务成功提交的 connection
             Set<Connection> committedSet = Sets.newHashSet();
             try {
@@ -108,7 +108,7 @@ public class DynamicTransaction implements Transaction {
             this.defaultConnection.rollback();
         }
         //有事务
-        if(DataSourceManager.get().hasSpringTransaction()) {
+        if (DataSourceManager.get().hasSpringTransaction()) {
             for (Pair<Boolean, Connection> accPair : attachedMap.values()) {
                 accPair.getValue().rollback();
             }
@@ -118,7 +118,7 @@ public class DynamicTransaction implements Transaction {
     @Override
     public void close() throws SQLException {
         //回收数据库连接到连接池
-        if(null != defaultConnection) {
+        if (null != defaultConnection) {
             DataSourceUtils.releaseConnection(defaultConnection, dataSource);
         }
         for (Pair<Boolean, Connection> accPair : attachedMap.values()) {
@@ -139,9 +139,10 @@ public class DynamicTransaction implements Transaction {
         }
         return null;
     }
+
     //开启 defaultConnection
     private Connection openDefaultConnection() throws SQLException {
-        if(null == defaultConnection) {
+        if (null == defaultConnection) {
             this.defaultConnection = DataSourceUtils.getConnection(dataSource);
             this.defaultAutoCommit = this.defaultConnection.getAutoCommit();
             this.dynamicTransactional = DataSourceUtils.isConnectionTransactional(defaultConnection, dataSource);

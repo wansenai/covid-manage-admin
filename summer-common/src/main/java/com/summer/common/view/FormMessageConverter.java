@@ -14,7 +14,7 @@ public final class FormMessageConverter extends FormHttpMessageConverter {
 
     public static final FormMessageConverter INSTANCE = new FormMessageConverter();
 
-    private FormMessageConverter(){
+    private FormMessageConverter() {
         setCharset(BytesHelper.UTF8);
         List<HttpMessageConverter<?>> converters = Lists.newArrayList();
         converters.add(new ByteArrayHttpMessageConverter());

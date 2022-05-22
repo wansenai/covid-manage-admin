@@ -23,13 +23,12 @@ import java.util.stream.Collectors;
 
 /**
  * 远程配置数据加载
- *
  */
 @Configuration
 public class ConfigCenterEnvironmentPostProcessor implements EnvironmentPostProcessor {
 
-    private static final String COMMON_CONFIG_NAME   = "common-config";
-    private static final String METADATA_CONF        = "eureka.instance.metadata-map.conf";
+    private static final String COMMON_CONFIG_NAME = "common-config";
+    private static final String METADATA_CONF = "eureka.instance.metadata-map.conf";
     private static final String MULTI_CONF_SEPARATOR = ",";
 
     private static final Logger log = LoggerFactory.getLogger(ConfigCenterEnvironmentPostProcessor.class);
@@ -70,7 +69,7 @@ public class ConfigCenterEnvironmentPostProcessor implements EnvironmentPostProc
     private void addEurekaMetadata(ConfigurableEnvironment environment) {
         Properties properties = new Properties();
 
-        String[]     profiles       = environment.getActiveProfiles();
+        String[] profiles = environment.getActiveProfiles();
         List<String> activeProfiles = new ArrayList<>(Arrays.asList(profiles));
 
         String conf = environment.getProperty(METADATA_CONF);

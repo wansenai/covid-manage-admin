@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.summer.manage.dao.system.UserPostDAO">
+    <insert id="batchUserPost">
+        INSERT INTO sys_user_post(user_id, post_id) VALUES
+        <foreach item="item" index="index" collection="list" separator=",">
+            (#{item.userId},#{item.postId})
+        </foreach>
+    </insert>
+    <delete id="deleteUserPostByUserId">
+		DELETE FROM sys_user_post WHERE user_id = #{userId}
+	</delete>
+    <delete id="deleteUserPost">
+        DELETE FROM sys_user_post WHERE user_id IN
+        <foreach collection="array" item="userId" open="(" separator="," close=")">
+            #{userId}
+        </foreach>
+    </delete>
+</mapper>

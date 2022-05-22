@@ -4,7 +4,6 @@ import com.summer.common.core.ICodeMSG;
 
 /**
  * 自定义异常，所有已知异常均应继承至{@link ThinkerException}
- *
  */
 public class ThinkerException extends RuntimeException {
 

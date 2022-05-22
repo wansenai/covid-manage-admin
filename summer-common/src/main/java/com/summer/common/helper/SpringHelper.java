@@ -6,13 +6,14 @@ import org.springframework.core.env.Environment;
 
 import java.util.function.Supplier;
 
-/** SPRING容器工具类 **/
+/**
+ * SPRING容器工具类
+ **/
 public abstract class SpringHelper {
-    private static ApplicationContext ctx; private static final String EMPTY = "";
-
-    public void setApplicationContext(ApplicationContext context) {
-        SpringHelper.ctx = context;
-    }
+    private static final String EMPTY = "";
+    private static ApplicationContext ctx;
+    @SuppressWarnings("unused")
+    private static String CONTEXT_PATH, APP_NAME, APP_PORT;
 
     public static Environment getEnvironment() {
         return null == ctx ? null : ctx.getEnvironment();
@@ -26,34 +27,40 @@ public abstract class SpringHelper {
         return ctx.getBean(beanName, clazz);
     }
 
-
-    @SuppressWarnings("unused")
-    private static String CONTEXT_PATH, APP_NAME, APP_PORT;
-
-    /** context path of the application. **/
+    /**
+     * context path of the application.
+     **/
     public static String contextPath() {
-        return ofValue(CONTEXT_PATH, ()-> confValue("server.servlet.context-path"));
+        return ofValue(CONTEXT_PATH, () -> confValue("server.servlet.context-path"));
     }
 
-    /** 获取应用名 **/
+    /**
+     * 获取应用名
+     **/
     public static String applicationName() {
-        return ofValue(APP_NAME, ()-> confValue("spring.application.name"));
+        return ofValue(APP_NAME, () -> confValue("spring.application.name"));
     }
 
-    /** 获取应用端口 **/
+    /**
+     * 获取应用端口
+     **/
     public static String applicationPort() {
-        String port = ofValue(APP_PORT, ()-> confValue("server.port"));
+        String port = ofValue(APP_PORT, () -> confValue("server.port"));
         return (null == port || port.trim().length() < 1) ? "0" : port;
     }
 
-    /** msc.response.used **/
+    /**
+     * msc.response.used
+     **/
     public static boolean mscResponseUsed() {
         return Boolean.TRUE.toString().equals(confValue("msc.response.used"));
     }
 
-    /** 获取应用运行的环境 **/
+    /**
+     * 获取应用运行的环境
+     **/
     public static String applicationEnv() {
-        if(null == ctx || null == ctx.getEnvironment()) {
+        if (null == ctx || null == ctx.getEnvironment()) {
             return EMPTY;
         }
         String[] envList = ctx.getEnvironment().getActiveProfiles();
@@ -68,9 +75,11 @@ public abstract class SpringHelper {
         return EMPTY;
     }
 
-    /** 获取应用环境KEY值 **/
+    /**
+     * 获取应用环境KEY值
+     **/
     public static String confValue(String key) {
-        if(null == ctx || null == ctx.getEnvironment()) {
+        if (null == ctx || null == ctx.getEnvironment()) {
             return EMPTY;
         }
         String value = ctx.getEnvironment().getProperty(key);
@@ -78,7 +87,7 @@ public abstract class SpringHelper {
     }
 
     private static String ofValue(String rs, Supplier<String> supplier) {
-        if(null == rs || rs.trim().length() < 1) {
+        if (null == rs || rs.trim().length() < 1) {
             rs = supplier.get();
         }
         return rs;
@@ -87,5 +96,9 @@ public abstract class SpringHelper {
     @SuppressWarnings("unchecked")
     public static <T> T getAopProxy(T invoker) {
         return (T) AopContext.currentProxy();
+    }
+
+    public void setApplicationContext(ApplicationContext context) {
+        SpringHelper.ctx = context;
     }
 }

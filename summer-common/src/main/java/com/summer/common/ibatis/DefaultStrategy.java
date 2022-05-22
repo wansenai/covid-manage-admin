@@ -14,13 +14,13 @@ public class DefaultStrategy implements DynamicStrategy {
         this.tableSuffix = tableSuffix;
     }
 
+    public static DefaultStrategy stg() {
+        return new DefaultStrategy(IDynamicDS.DEFAULT, StringHelper.EMPTY);
+    }
+
     @Override
     public LinkedHashSet<Target> strategy() {
         return DynamicStrategy.ofTargetSet(new Target(datasource, DynamicStrategy.ofTableSuffixSet(tableSuffix)));
-    }
-
-    public static DefaultStrategy stg() {
-        return new DefaultStrategy(IDynamicDS.DEFAULT, StringHelper.EMPTY);
     }
 
     public DefaultStrategy ofDatasource(String datasource) {

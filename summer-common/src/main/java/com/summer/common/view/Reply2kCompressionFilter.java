@@ -4,16 +4,16 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.ImmutableMap;
 import com.summer.common.core.RpcReply;
-import com.summer.common.ibatis.DataSourceManager;
-import com.summer.common.support.IConstant;
-import com.summer.common.view.parser.RequestContext;
-import com.summer.common.view.parser.RequestHeader;
-import com.summer.common.view.parser.RequestSession;
 import com.summer.common.helper.BytesHelper;
 import com.summer.common.helper.ExceptionHelper;
 import com.summer.common.helper.JsonHelper;
 import com.summer.common.helper.SpringHelper;
 import com.summer.common.helper.StringHelper;
+import com.summer.common.ibatis.DataSourceManager;
+import com.summer.common.support.IConstant;
+import com.summer.common.view.parser.RequestContext;
+import com.summer.common.view.parser.RequestHeader;
+import com.summer.common.view.parser.RequestSession;
 import javafx.util.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,7 +42,9 @@ import java.util.Enumeration;
 import java.util.Map;
 import java.util.zip.GZIPOutputStream;
 
-/** URI Response 大于 2K 的做压缩处理 **/
+/**
+ * URI Response 大于 2K 的做压缩处理
+ **/
 public class Reply2kCompressionFilter implements Filter {
     private static final Logger LOG = LoggerFactory.getLogger(Reply2kCompressionFilter.class);
 
@@ -50,16 +52,40 @@ public class Reply2kCompressionFilter implements Filter {
     private static final Long NEED_COM_SIZE = 2 * 1024L;
 
     private boolean logged = false;
+
+    /**
+     * 判断请求返回体是需要压缩
+     **/
+    private static boolean needCompress(HttpServletRequest request, byte[] src) {
+        return src.length >= NEED_COM_SIZE && supportGzip(request);
+    }
+
+    /**
+     * 判断请求是否支持 GZIP
+     **/
+    private static boolean supportGzip(HttpServletRequest request) {
+        Enumeration<String> headers = request.getHeaders(ACCEPT_ENCODING);
+        while (headers.hasMoreElements()) {
+            String value = headers.nextElement();
+            if (value.contains(GZIP)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     public void init(FilterConfig config) {
         logged = "true".equals(SpringHelper.confValue(IConstant.KEY_OPERATIONS_LOG_ENABLE));
         LOG.debug("compression filter init......");
     }
+
     public void doFilter(ServletRequest req, ServletResponse res, FilterChain chain) throws IOException, ServletException {
-        HttpServletRequest request = (HttpServletRequest)req;
+        HttpServletRequest request = (HttpServletRequest) req;
         String uri = request.getRequestURI();
         // process spring cloud or websocket endpoint or error path
         if (IConstant.isActuatorEndpoint(uri) || IConstant.isStreamEndpoint(uri) || WebConfigurationSupport.GlobalControllerHandler.ERROR_PATH.equals(uri)) {
-            chain.doFilter(request, res); return;
+            chain.doFilter(request, res);
+            return;
         }
         // 生成 RequestSession
         RequestContext.get().setSession(RequestSession.newborn(request));
@@ -71,7 +97,7 @@ public class Reply2kCompressionFilter implements Filter {
         ExceptionHelper.setAccessInTime(response);
         // 进入业务处理
         chain.doFilter(new RequestWrapper(request), wrapper);
-        if(!response.isCommitted()) {
+        if (!response.isCommitted()) {
             response.setHeader(RequestHeader.Rid.name(), RequestContext.get().getSession().rid);
             // 非资源请求时 设置请求头信息
             if (!isSR) {
@@ -84,19 +110,24 @@ public class Reply2kCompressionFilter implements Filter {
                         && !wrapper.getContentType().startsWith(MediaType.APPLICATION_OCTET_STREAM_VALUE)) {
                     response.setContentType(MediaType.APPLICATION_JSON_UTF8_VALUE);
                 }
-            }else{
-                if ( !StringHelper.isBlank(request.getContentType()) && !response.getContentType().contains("charset") ){
+            } else {
+                if (!StringHelper.isBlank(request.getContentType()) && !response.getContentType().contains("charset")) {
                     response.setContentType(response.getContentType() + ";charset=UTF-8");
                 }
-                if( !StringHelper.isBlank(wrapper.getContentType()) && !wrapper.getContentType().contains("charset")){
-                    if(!response.getContentType().contains("charset")){
+                if (!StringHelper.isBlank(wrapper.getContentType()) && !wrapper.getContentType().contains("charset")) {
+                    if (!response.getContentType().contains("charset")) {
                         response.setContentType(response.getContentType() + ";charset=UTF-8");
                     }
                 }
             }
             boolean errored = ExceptionHelper.errored(wrapper);
-            wrapper.flushBuffer(); wrapper.finish(); byte[] bytes = wrapper.body();
-            if (errored) {  if (isSR) { return; }
+            wrapper.flushBuffer();
+            wrapper.finish();
+            byte[] bytes = wrapper.body();
+            if (errored) {
+                if (isSR) {
+                    return;
+                }
                 response.setStatus(HttpStatus.OK.value());
                 bytes = ExceptionHelper.errorBody(wrapper);
                 ExceptionHelper.clearResponseError(response);
@@ -115,26 +146,34 @@ public class Reply2kCompressionFilter implements Filter {
                 bytes = JsonHelper.toJSONBytes(json.getJSONObject("response"));
             }
             Pair<String, byte[]> result = new Pair<>(response.getContentType(), bytes);
-            OutputStream os = null; ByteArrayOutputStream bos = null; GZIPOutputStream gzip = null;
+            OutputStream os = null;
+            ByteArrayOutputStream bos = null;
+            GZIPOutputStream gzip = null;
             try {
                 os = response.getOutputStream();
                 // 如果 Client 支持 GZIP, 压缩
-                if(needCompress(request, bytes)) {
+                if (needCompress(request, bytes)) {
                     response.addHeader(CON_ENCODING, GZIP);
                     bos = new ByteArrayOutputStream();
                     gzip = new GZIPOutputStream(bos);
                     gzip.write(bytes);
-                    gzip.finish(); gzip.flush(); bos.flush();
+                    gzip.finish();
+                    gzip.flush();
+                    bos.flush();
                     bytes = bos.toByteArray();
                 }
                 ExceptionHelper.setSpentTime(response);
                 response.setContentLength(bytes.length);
-                os.write(bytes); os.flush();
+                os.write(bytes);
+                os.flush();
             } finally {
                 // 处理请求响应日志
                 new RequestResponseLogger(isSR, RequestContext.get().getSession(), result).submit(logged).clearGZIP(gzip, bos);
                 // 清理 ThreadLocal
-                BytesHelper.close(os); RequestContext.get().clear(); DataSourceManager.get().clear(); RpcReply.Helper.get().clear();
+                BytesHelper.close(os);
+                RequestContext.get().clear();
+                DataSourceManager.get().clear();
+                RpcReply.Helper.get().clear();
             }
         }
     }
@@ -143,28 +182,12 @@ public class Reply2kCompressionFilter implements Filter {
         LOG.debug("compression filter destroy......");
     }
 
-    /** 判断请求返回体是需要压缩 **/
-    private static boolean needCompress(HttpServletRequest request, byte[] src) {
-        return src.length >= NEED_COM_SIZE && supportGzip(request);
-    }
-
-    /** 判断请求是否支持 GZIP **/
-    private static boolean supportGzip(HttpServletRequest request) {
-        Enumeration<String> headers = request.getHeaders(ACCEPT_ENCODING);
-        while (headers.hasMoreElements()) {
-            String value = headers.nextElement();
-            if (value.contains(GZIP)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
     // 重新Wrapper Request
     static final class RequestWrapper extends HttpServletRequestWrapper {
         RequestWrapper(HttpServletRequest request) {
             super(request);
         }
+
         @Override
         public String getContentType() {
             String contentType = super.getContentType();
@@ -253,11 +276,14 @@ public class Reply2kCompressionFilter implements Filter {
                 buffer.write(b);
             }
 
-            @Override public boolean isReady() {
+            @Override
+            public boolean isReady() {
                 return false;
             }
 
-            @Override public void setWriteListener(WriteListener writeListener) {}
+            @Override
+            public void setWriteListener(WriteListener writeListener) {
+            }
         }
     }
 }

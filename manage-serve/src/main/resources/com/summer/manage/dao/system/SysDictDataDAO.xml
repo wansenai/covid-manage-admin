@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.summer.manage.dao.system.SysDictDataDAO">
+    <insert id="insertDictData">
+        INSERT INTO sys_dict_data(
+        <if test="dictSort != null">dict_sort,</if>
+        <if test="dictLabel != null and dictLabel != ''">dict_label,</if>
+        <if test="dictValue != null and dictValue != ''">dict_value,</if>
+        <if test="dictType != null and dictType != ''">dict_type,</if>
+        <if test="cssClass != null and cssClass != ''">css_class,</if>
+        <if test="listClass != null and listClass != ''">list_class,</if>
+        <if test="isDefault != null and isDefault != ''">is_default,</if>
+        <if test="status != null">status,</if>
+        <if test="remark != null and remark != ''">remark,</if>
+        <if test="createdBy != null and createdBy != ''">created_by,</if>
+        created_at
+        )values(
+        <if test="dictSort != null">#{dictSort},</if>
+        <if test="dictLabel != null and dictLabel != ''">#{dictLabel},</if>
+        <if test="dictValue != null and dictValue != ''">#{dictValue},</if>
+        <if test="dictType != null and dictType != ''">#{dictType},</if>
+        <if test="cssClass != null and cssClass != ''">#{cssClass},</if>
+        <if test="listClass != null and listClass != ''">#{listClass},</if>
+        <if test="isDefault != null and isDefault != ''">#{isDefault},</if>
+        <if test="status != null">#{status},</if>
+        <if test="remark != null and remark != ''">#{remark},</if>
+        <if test="createdBy != null and createdBy != ''">#{createdBy},</if>
+        now()
+        )
+    </insert>
+    <update id="updateDictDataType">
+		UPDATE sys_dict_data SET dict_type = #{newDictType} WHERE dict_type = #{oldDictType}
+	</update>
+    <update id="updateDictData">
+        UPDATE sys_dict_data
+        <set>
+            <if test="dictSort != null">dict_sort = #{dictSort},</if>
+            <if test="dictLabel != null and dictLabel != ''">dict_label = #{dictLabel},</if>
+            <if test="dictValue != null and dictValue != ''">dict_value = #{dictValue},</if>
+            <if test="dictType != null and dictType != ''">dict_type = #{dictType},</if>
+            <if test="cssClass != null">css_class = #{cssClass},</if>
+            <if test="listClass != null">list_class = #{listClass},</if>
+            <if test="isDefault != null and isDefault != ''">is_default = #{isDefault},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="remark != null">remark = #{remark},</if>
+            <if test="updatedBy != null and updatedBy != ''">updated_by = #{updatedBy},</if>
+            updated_at = now()
+        </set>
+        WHERE id = #{id}
+    </update>
+    <delete id="deleteDictDataByIds">
+        DELETE FROM sys_dict_data WHERE id IN
+        <foreach collection="array" item="dictCode" open="(" separator="," close=")">
+            #{dictCode}
+        </foreach>
+    </delete>
+
+    <select id="selectDictDataByType" resultType="com.summer.manage.entity.system.SysDictData">
+		SELECT * FROM sys_dict_data
+		WHERE status = '0' AND dict_type = #{dictType} ORDER BY dict_sort ASC
+	</select>
+    <select id="countDictDataByType" resultType="java.lang.Integer">
+		SELECT count(*) FROM sys_dict_data WHERE dict_type = #{dictType}
+	</select>
+    <select id="listData" resultType="com.summer.manage.entity.system.SysDictData">
+        SELECT *
+        FROM sys_dict_data
+        <where>
+            <if test="dictType != null and dictType != ''">
+                AND dict_type = #{dictType}
+            </if>
+            <if test="dictLabel != null and dictLabel != ''">
+                AND dict_label like concat('%', #{dictLabel}, '%')
+            </if>
+            <if test="status != null and status != ''">
+                AND status = #{status}
+            </if>
+        </where>
+        ORDER BY dict_sort ASC LIMIT #{offset}, #{size};
+    </select>
+    <select id="listDataCount" resultType="java.lang.Long">
+        SELECT COUNT(*)
+        FROM sys_dict_data
+        <where>
+            <if test="dictType != null and dictType != ''">
+                AND dict_type = #{dictType}
+            </if>
+            <if test="dictLabel != null and dictLabel != ''">
+                AND dict_label like concat('%', #{dictLabel}, '%')
+            </if>
+            <if test="status != null and status != ''">
+                AND status = #{status}
+            </if>
+        </where>
+    </select>
+    <select id="selectDictDataById" resultType="com.summer.manage.entity.system.SysDictData">
+		SELECT * FROM sys_dict_data
+		WHERE id = #{id}
+	</select>
+</mapper>

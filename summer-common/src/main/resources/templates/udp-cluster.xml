@@ -30,9 +30,9 @@
     <MERGE3 max_interval="30000" min_interval="10000"/>
     <FD_SOCK/>
     <FD_ALL/>
-    <VERIFY_SUSPECT timeout="1500"  />
+    <VERIFY_SUSPECT timeout="1500"/>
 
-    <BARRIER />
+    <BARRIER/>
     <pbcast.NAKACK2 xmit_interval="500"
                     use_mcast_xmit="false"
                     log_discard_msgs="true"
@@ -43,15 +43,15 @@
                     xmit_table_max_compaction_time="30000"
                     suppress_time_non_member_warnings="1"/>
 
-    <UNICAST3 xmit_table_num_rows="100" xmit_table_msgs_per_row="1000" xmit_table_max_compaction_time="30000" />
+    <UNICAST3 xmit_table_num_rows="100" xmit_table_msgs_per_row="1000" xmit_table_max_compaction_time="30000"/>
 
     <pbcast.STABLE desired_avg_gossip="60000" max_bytes="5M"/>
 
-    <pbcast.GMS print_local_addr="true" join_timeout="10000" merge_timeout="5000" all_clients_retry_timeout="10000" />
+    <pbcast.GMS print_local_addr="true" join_timeout="10000" merge_timeout="5000" all_clients_retry_timeout="10000"/>
     <UFC max_credits="5M" min_threshold="0.5"/>
     <MFC max_credits="5M" min_threshold="0.5"/>
-    <FRAG2 frag_size="60K"  />
-    <pbcast.STATE_TRANSFER />
+    <FRAG2 frag_size="60K"/>
+    <pbcast.STATE_TRANSFER/>
     <RSVP resend_interval="2000" timeout="10000"/>
     <!--support cluster locking-->
     <CENTRAL_LOCK num_backups="2"/>

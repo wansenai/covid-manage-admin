@@ -21,51 +21,37 @@ import java.io.Serializable;
  **/
 public class OperationLog implements Serializable {
     private static final long serialVersionUID = -1792967204418671858L;
+    private static final Logger LOG = LoggerFactory.getLogger("JSON.parse");
     @Property(type = Typical.Long, desc = "日志ID")
     public long logId;
-
     @Property(type = Typical.Keyword, analyzer = "not_analyzed", desc = "请求ID")
     public String rid;
-
     @Property(type = Typical.Keyword, analyzer = "not_analyzed", desc = "请求深度或宽度")
     public String span;
-
     @JSONField(ordinal = 1)
     @Property(type = Typical.Keyword, analyzer = "not_analyzed", desc = "API接口名")
     public String apiName;
-
     @Property(type = Typical.Double, desc = "访问的时间")
     @JSONField(ordinal = 2, format = "#.000")
     public Double accessTime;
-
     @JSONField(ordinal = 3)
     @Property(type = Typical.Keyword, analyzer = "not_analyzed", desc = "接口URI")
     public String uri;
-
     @JSONField(ordinal = 4)
     @Property(type = Typical.Keyword, analyzer = "not_analyzed", desc = "接口QUERY数据")
     public String query;
-
     @JSONField(ordinal = 5)
     @Property(type = Typical.Keyword, analyzer = "not_analyzed", desc = "访问的域名")
     public String domain;
-
     @JSONField(ordinal = 6)
     @Property(type = Typical.Keyword, analyzer = "not_analyzed", desc = "客户端IP")
     public String clientIp;
-
     @JSONField(ordinal = 7)
     @Property(type = Typical.Text, desc = "客户端UserAgent")
     public String userAgent;
-
     @JSONField(ordinal = 8)
     @Property(type = Typical.Text, desc = "授权加密值")
     public String signature;
-
-    @JSONField(ordinal = 9)
-    @Property(type = Typical.Text, desc = "BODY参数")
-    private Object requestBody;
-
     @JSONField(ordinal = 10)
     @Property(type = Typical.Keyword, analyzer = "not_analyzed", desc = "用户ID")
     public String uid;
@@ -93,30 +79,13 @@ public class OperationLog implements Serializable {
     @JSONField(ordinal = 16)
     @Property(type = Typical.Long, desc = "接口耗时")
     public Long cost;
-
+    @JSONField(ordinal = 9)
+    @Property(type = Typical.Text, desc = "BODY参数")
+    private Object requestBody;
     @JSONField(ordinal = 17)
     @Property(type = Typical.Text, desc = "接口返回数据")
     private Object responseBody;
 
-    public Object getRequestBody() {
-        if (IConstant.APPENDER_STREAM.equalsIgnoreCase(SpringHelper.confValue(IConstant.KEY_LOG_APPENDER))) {
-            return requestBody instanceof String ? (String) requestBody : JsonHelper.toJSONString(requestBody);
-        }
-        return requestBody;
-    }
-
-    public void setResponseBody(Object responseBody) {
-        this.responseBody = responseBody;
-    }
-
-    public Object getResponseBody() {
-        if (IConstant.APPENDER_STREAM.equalsIgnoreCase(SpringHelper.confValue(IConstant.KEY_LOG_APPENDER))) {
-            return responseBody instanceof String ? (String) responseBody : JsonHelper.toJSONString(responseBody);
-        }
-        return responseBody;
-    }
-
-    private static final Logger LOG = LoggerFactory.getLogger("JSON.parse");
     public static OperationLog newborn(RequestSession session, long endTime, Object responseBody) {
         OperationLog log = new OperationLog();
         log.logId = SnowIdHelper.nextId();
@@ -139,7 +108,7 @@ public class OperationLog implements Serializable {
                 } else {
                     log.requestBody = JSON.parseObject(session.body);
                 }
-            }catch (Exception e) {
+            } catch (Exception e) {
                 LOG.warn("request body to Json or JsonArray error ", e);
                 log.requestBody = session.body;
             }
@@ -157,6 +126,24 @@ public class OperationLog implements Serializable {
             log.responseBody = responseBody;
         }
         return log;
+    }
+
+    public Object getRequestBody() {
+        if (IConstant.APPENDER_STREAM.equalsIgnoreCase(SpringHelper.confValue(IConstant.KEY_LOG_APPENDER))) {
+            return requestBody instanceof String ? (String) requestBody : JsonHelper.toJSONString(requestBody);
+        }
+        return requestBody;
+    }
+
+    public Object getResponseBody() {
+        if (IConstant.APPENDER_STREAM.equalsIgnoreCase(SpringHelper.confValue(IConstant.KEY_LOG_APPENDER))) {
+            return responseBody instanceof String ? (String) responseBody : JsonHelper.toJSONString(responseBody);
+        }
+        return responseBody;
+    }
+
+    public void setResponseBody(Object responseBody) {
+        this.responseBody = responseBody;
     }
 
     public String toJson() {

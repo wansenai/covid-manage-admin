@@ -2,7 +2,9 @@ package com.summer.common.support;
 
 import com.summer.common.core.StringEnum;
 
-/** 时间格式化 **/
+/**
+ * 时间格式化
+ **/
 public enum DateFormat implements StringEnum {
     ShortNumDate("yyMMdd"),
 
@@ -39,6 +41,6 @@ public enum DateFormat implements StringEnum {
     PointYearMonthTime("yyyy.MM");
 
     DateFormat(String value) {
-	    changeNameTo(this, value);
+        changeNameTo(this, value);
     }
 }

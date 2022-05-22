@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.summer.manage.dao.system.SysMenuDAO">
+    <insert id="insertMenu" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO sys_menu(
+        <if test="id != null and id != 0">id,</if>
+        <if test="parentId != null and parentId != 0">parent_id,</if>
+        <if test="menuName != null and menuName != ''">menu_name,</if>
+        <if test="orderNum != null and orderNum != ''">order_num,</if>
+        <if test="path != null and path != ''">path,</if>
+        <if test="component != null and component != ''">component,</if>
+        <if test="isFrame != null and isFrame != ''">is_frame,</if>
+        <if test="isCache != null and isCache != ''">is_cache,</if>
+        <if test="menuType != null and menuType != ''">menu_type,</if>
+        <if test="visible != null">visible,</if>
+        <if test="status != null">status,</if>
+        <if test="uri !=null and uri != ''">uri,</if>
+        <if test="icon != null and icon != ''">icon,</if>
+        <if test="remark != null and remark != ''">remark,</if>
+        <if test="createdBy != null and createdBy != ''">created_by,</if>
+        created_at
+        )VALUES(
+        <if test="id != null and id != 0">#{id},</if>
+        <if test="parentId != null and parentId != 0">#{parentId},</if>
+        <if test="menuName != null and menuName != ''">#{menuName},</if>
+        <if test="orderNum != null and orderNum != ''">#{orderNum},</if>
+        <if test="path != null and path != ''">#{path},</if>
+        <if test="component != null and component != ''">#{component},</if>
+        <if test="isFrame != null and isFrame != ''">#{isFrame},</if>
+        <if test="isCache != null and isCache != ''">#{isCache},</if>
+        <if test="menuType != null and menuType != ''">#{menuType},</if>
+        <if test="visible != null">#{visible},</if>
+        <if test="status != null">#{status},</if>
+        <if test="uri !=null and uri != ''">#{uri},</if>
+        <if test="icon != null and icon != ''">#{icon},</if>
+        <if test="remark != null and remark != ''">#{remark},</if>
+        <if test="createdBy != null and createdBy != ''">#{createdBy},</if>
+        now()
+        )
+    </insert>
+    <update id="updateMenu">
+        UPDATE sys_menu
+        <set>
+            <if test="menuName != null and menuName != ''">menu_name = #{menuName},</if>
+            <if test="parentId != null">parent_id = #{parentId},</if>
+            <if test="orderNum != null and orderNum != ''">order_num = #{orderNum},</if>
+            <if test="path != null and path != ''">path = #{path},</if>
+            <if test="component != null">component = #{component},</if>
+            <if test="isFrame != null and isFrame != ''">is_frame = #{isFrame},</if>
+            <if test="isCache != null and isCache != ''">is_cache = #{isCache},</if>
+            <if test="menuType != null and menuType != ''">menu_type = #{menuType},</if>
+            <if test="visible != null">visible = #{visible},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="uri !=null">uri = #{uri},</if>
+            <if test="icon !=null and icon != ''">icon = #{icon},</if>
+            <if test="remark != null and remark != ''">remark = #{remark},</if>
+            <if test="updatedBy != null and updatedBy != ''">updated_by = #{updatedBy},</if>
+            updated_at = now()
+        </set>
+        where id = #{id}
+    </update>
+    <delete id="deleteMenuById">
+		DELETE FROM sys_menu WHERE id = #{menuId}
+	</delete>
+
+    <select id="getMenuTreeAll" resultType="com.summer.manage.entity.system.SysMenu">
+        SELECT DISTINCT m.id, m.parent_id, m.menu_name, m.path, m.component, m.visible, m.status, ifnull(m.uri,'') AS uri, m.is_frame, m.is_cache, m.menu_type, m.icon, m.order_num, m.created_at
+		FROM sys_menu m where m.menu_type IN ('M', 'C') AND m.status = 0
+		ORDER BY m.parent_id, m.order_num
+    </select>
+    <select id="selectMenuPermsByUserId" resultType="java.lang.String">
+        SELECT DISTINCT m.uri
+		FROM sys_menu m
+			 LEFT JOIN sys_role_menu rm ON m.id = rm.menu_id
+			 LEFT JOIN sys_user_role ur ON rm.role_id = ur.role_id
+			 LEFT JOIN sys_role r ON r.id = ur.role_id
+		WHERE m.status = '0' AND r.status = '0' AND ur.user_id = #{id}
+    </select>
+    <select id="selectMenuTreeByUserId" resultType="com.summer.manage.entity.system.SysMenu">
+		SELECT DISTINCT m.id, m.parent_id, m.menu_name, m.path, m.component, m.visible, m.status, ifnull(m.uri,'') AS uri, m.is_frame, m.is_cache, m.menu_type, m.icon, m.order_num, m.created_at
+		FROM sys_menu m
+			 LEFT JOIN sys_role_menu rm ON m.id = rm.menu_id
+			 LEFT JOIN sys_user_role ur ON rm.role_id = ur.role_id
+			 LEFT JOIN sys_role ro ON ro.id = ur.role_id
+			 LEFT JOIN sys_user u on ur.user_id = u.id
+		WHERE u.id = #{id} AND m.menu_type IN ('M', 'C') AND m.status = 0 AND ro.status = 0
+		ORDER BY m.parent_id, m.order_num
+	</select>
+    <select id="selectMenuList" resultType="com.summer.manage.entity.system.SysMenu">
+        SELECT * FROM sys_menu
+        <where>
+            <if test="menuName != null and menuName != ''">
+                AND menu_name LIKE concat('%', #{menuName}, '%')
+            </if>
+            <if test="visible != null and visible != ''">
+                AND visible = #{visible}
+            </if>
+            <if test="status != null and status != ''">
+                AND status = #{status}
+            </if>
+        </where>
+        ORDER BY parent_id, order_num
+    </select>
+    <select id="selectMenuListByUserId" resultType="com.summer.manage.entity.system.SysMenu">
+        SELECT DISTINCT m.id, m.parent_id, m.menu_name, m.path, m.component, m.visible, m.status, ifnull(m.uri,'') AS
+        uri, m.is_frame, m.is_cache, m.menu_type, m.icon, m.order_num, m.created_at
+        FROM sys_menu m
+        LEFT JOIN sys_role_menu rm ON m.id = rm.menu_id
+        LEFT JOIN sys_user_role ur ON rm.role_id = ur.role_id
+        LEFT JOIN sys_role ro ON ro.id = ur.role_id
+        WHERE ur.user_id = #{params.userId}
+        <if test="menuName != null and menuName != ''">
+            AND menu_name LIKE concat('%', #{menuName}, '%')
+        </if>
+        <if test="visible != null and visible != ''">
+            AND visible = #{visible}
+        </if>
+        <if test="status != null and status != ''">
+            AND status = #{status}
+        </if>
+        ORDER BY m.parent_id, m.order_num
+    </select>
+    <select id="checkMenuNameUnique" resultType="com.summer.manage.entity.system.SysMenu">
+		SELECT * FROM sys_menu
+		WHERE menu_name=#{menuName} AND parent_id = #{parentId} LIMIT 1
+	</select>
+    <select id="hasChildByMenuId" resultType="java.lang.Integer">
+		SELECT count(1) FROM sys_menu WHERE parent_id = #{menuId}
+	</select>
+    <select id="checkMenuExistRole" resultType="java.lang.Integer">
+		SELECT count(1) FROM sys_role_menu WHERE menu_id = #{menuId}
+	</select>
+    <select id="selectMenuById" resultType="com.summer.manage.entity.system.SysMenu">
+		SELECT * FROM sys_menu
+		WHERE id = #{menuId}
+	</select>
+    <select id="selectMenuListByRoleId" resultType="java.lang.Integer">
+        SELECT m.id
+        FROM sys_menu m
+        LEFT JOIN sys_role_menu rm on m.id = rm.menu_id
+        WHERE rm.role_id = #{id}
+        <if test="menuCheckStrictly">
+            AND m.id NOT IN (SELECT m.parent_id FROM sys_menu m INNER JOIN sys_role_menu rm ON m.id = rm.menu_id AND
+            rm.role_id = #{id})
+        </if>
+        order by m.parent_id, m.order_num
+    </select>
+</mapper>

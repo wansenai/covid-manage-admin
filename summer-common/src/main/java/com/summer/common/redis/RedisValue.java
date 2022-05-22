@@ -15,7 +15,8 @@ public final class RedisValue implements Serializable {
 
     public VT vt;
 
-    public RedisValue() {}
+    public RedisValue() {
+    }
 
     public RedisValue(Object val, VT vt) {
         this.val = val;
@@ -24,13 +25,13 @@ public final class RedisValue implements Serializable {
 
     public static RedisValue newborn(Object val) {
         Class<?> clazz = val.getClass();
-        if(BeanHelper.isPrimitiveType(clazz)) {
+        if (BeanHelper.isPrimitiveType(clazz)) {
             return new RedisValue(val, VT.Primitive);
         } else {
-            if(!CacheSerialize.class.isAssignableFrom(clazz)) {
+            if (!CacheSerialize.class.isAssignableFrom(clazz)) {
                 throw new RedisException("Redis cache object must extends " + CacheSerialize.class.getName());
             }
-            if(Collection.class.isAssignableFrom(clazz)) {
+            if (Collection.class.isAssignableFrom(clazz)) {
                 return new RedisValue(val, VT.Collection);
             } else {
                 return new RedisValue(val, VT.Composite);

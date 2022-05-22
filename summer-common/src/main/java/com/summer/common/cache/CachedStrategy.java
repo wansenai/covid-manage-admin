@@ -23,30 +23,53 @@ public abstract class CachedStrategy<T> {
     private final Class<T> type;
     private final Class<?> thisT;
     private final String typeName;
+
     protected CachedStrategy() {
         this.thisT = this.getClass();
         this.type = GenericHelper.type(thisT);
         this.typeName = type.getSimpleName();
     }
 
-    /** 缓存值类型 **/
+    // KEY真实值
+    static List<String> realKeys(String typeName, String... keys) {
+        List<String> keyList = Lists.newArrayList();
+        if (!CollectsHelper.isNullOrEmpty(keys)) {
+            for (String key : keys) {
+                if (!StringHelper.isBlank(key)) {
+                    keyList.add(typeName + ":" + key);
+                }
+            }
+        }
+        return keyList;
+    }
+
+    /**
+     * 缓存值类型
+     **/
     Class<T> cacheGenericType() {
         return type;
     }
-    /** 禁用缓存， 作用于缓存类型级 **/
+
+    /**
+     * 禁用缓存， 作用于缓存类型级
+     **/
     protected boolean disabled() {
         return false;
     }
-    /** 缓存类型名, 可重写算定义缓存名 **/
+
+    /**
+     * 缓存类型名, 可重写算定义缓存名
+     **/
     protected String cacheName() {
         return typeName;
     }
 
     // 创建|获取 缓存时的 KEY 列表
-    String[] inGet(Command cmd, Signature signature, Method method, Object[] args){
+    String[] inGet(Command cmd, Signature signature, Method method, Object[] args) {
         String mName = callName(cmd, signature, method);
         return invoke(args, method(cmd, mName, method));
     }
+
     // 批量查询 未中缓存则后序业务处理
     Map<String, T> multiRs(String typeName, ProceedingJoinPoint point, Method method, Object[] args, Set<String> overflow) {
         List<Object> argList = Lists.newArrayList(args);
@@ -54,23 +77,13 @@ public abstract class CachedStrategy<T> {
         String mName = callName(Command.MultiVal, point.getSignature(), method);
         return multiInvoke(argList.toArray(), method(Command.MultiVal, mName, method));
     }
+
     // 清除缓存时的 KEY 列表
-    String[] evict(Signature signature, Method method, Object[] args, Object result){
-        List<Object> argList = Lists.newArrayList(args); argList.add(result);
+    String[] evict(Signature signature, Method method, Object[] args, Object result) {
+        List<Object> argList = Lists.newArrayList(args);
+        argList.add(result);
         String mName = callName(Command.Evict, signature, method);
         return invoke(argList.toArray(), method(Command.Evict, mName, method));
-    }
-    // KEY真实值
-    static List<String> realKeys(String typeName, String ...keys)  {
-        List<String> keyList = Lists.newArrayList();
-        if(!CollectsHelper.isNullOrEmpty(keys)) {
-            for (String key : keys) {
-                if(!StringHelper.isBlank(key)) {
-                    keyList.add(typeName + ":" + key);
-                }
-            }
-        }
-        return keyList;
     }
 
     private Pair<Boolean, Method> method(Command cmd, String mName, Method method) {
@@ -85,9 +98,10 @@ public abstract class CachedStrategy<T> {
                         Class<?> resultType = method.getReturnType();
                         pts.add(Void.TYPE.equals(resultType) ? Void.class : resultType);
                         types = pts.toArray(new Class[0]);
-                    } else if(Command.MultiVal == cmd) {
+                    } else if (Command.MultiVal == cmd) {
                         List<Class<?>> pts = Lists.newArrayList(types);
-                        pts.add(Aop.class); types = pts.toArray(new Class[0]);
+                        pts.add(Aop.class);
+                        types = pts.toArray(new Class[0]);
                     }
                     pair = new Pair<>(true, thisT.getMethod(mName, types));
                 } catch (Exception e) {
@@ -101,7 +115,7 @@ public abstract class CachedStrategy<T> {
     }
 
     private String[] invoke(Object[] args, Pair<Boolean, Method> pair) {
-        if(pair.getKey()) {
+        if (pair.getKey()) {
             Class<?> rt = pair.getValue().getReturnType();
             if (rt.equals(String[].class)) {
                 try {
@@ -117,10 +131,11 @@ public abstract class CachedStrategy<T> {
     }
 
     private Map<String, T> multiInvoke(Object[] args, Pair<Boolean, Method> pair) {
-        if(pair.getKey()) {
+        if (pair.getKey()) {
             Class<?> rc = pair.getValue().getReturnType();
             Type rt = pair.getValue().getGenericReturnType();
-            Class<?> keyC = GenericHelper.type(rt); Class<?> valC = GenericHelper.type(rt, 1);
+            Class<?> keyC = GenericHelper.type(rt);
+            Class<?> valC = GenericHelper.type(rt, 1);
             if (Map.class.isAssignableFrom(rc) && String.class.equals(keyC) && type.isAssignableFrom(valC)) {
                 try {
                     //noinspection unchecked
@@ -147,17 +162,20 @@ public abstract class CachedStrategy<T> {
         private final String typeName;
         private final Set<String> keys;
         private ProceedingJoinPoint point;
+
         Aop(String typeName, Set<String> keys, ProceedingJoinPoint point) {
             this.keys = keys;
             this.point = point;
             this.typeName = typeName;
         }
+
         public boolean sterilize(String key) {
             return null != keys && keys.contains(realKeys(typeName, key).get(0));
         }
+
         public <T> T proceed(Object[] args) throws Throwable {
             //noinspection unchecked
-            return (T)point.proceed(args);
+            return (T) point.proceed(args);
         }
     }
 }

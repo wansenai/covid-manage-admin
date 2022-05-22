@@ -6,7 +6,9 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-/** 该类控制事物会出错，请使用 org.springframework.transaction.annotation.Transactional **/
+/**
+ * 该类控制事物会出错，请使用 org.springframework.transaction.annotation.Transactional
+ **/
 @Deprecated
 @Inherited
 @Target({ElementType.TYPE, ElementType.METHOD})
@@ -14,6 +16,10 @@ import java.lang.annotation.Target;
 public @interface Transactional {
 
     TxType value() default TxType.REQUIRED;
+
+    Class[] rollbackOn() default {};
+
+    Class[] dontRollbackOn() default {};
 
     enum TxType {
         REQUIRED,
@@ -28,8 +34,5 @@ public @interface Transactional {
 
         NEVER
     }
-    Class[] rollbackOn() default {};
-
-    Class[] dontRollbackOn() default {};
 
 }

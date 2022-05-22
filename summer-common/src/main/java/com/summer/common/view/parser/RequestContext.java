@@ -33,7 +33,6 @@ public final class RequestContext {
     };
 
 
-
     private RequestSession session;
 
     /**
@@ -41,20 +40,6 @@ public final class RequestContext {
      */
     public static RequestContext get() {
         return holder.get();
-    }
-
-    /**
-     * 获取HTTP认证 SESSION
-     */
-    public RequestSession getSession() {
-        return session;
-    }
-
-    /**
-     * 设置HTTP的认证 RequestSession
-     */
-    public void setSession(RequestSession session) {
-        this.session = session;
     }
 
     /**
@@ -230,13 +215,6 @@ public final class RequestContext {
         return wssC;
     }
 
-    /**
-     * 每个请求完成清除 ThreadLocal 中的数据
-     */
-    public void clear() {
-        holder.remove();
-    }
-
     public static boolean keyAnswerUnderline() {
         RequestSession session = get().getSession();
         return null != session && 1 == session.keyStyle;
@@ -245,5 +223,26 @@ public final class RequestContext {
     public static boolean keyFrontRequest() {
         RequestSession session = get().getSession();
         return null != session && 1 == session.frontREQ;
+    }
+
+    /**
+     * 获取HTTP认证 SESSION
+     */
+    public RequestSession getSession() {
+        return session;
+    }
+
+    /**
+     * 设置HTTP的认证 RequestSession
+     */
+    public void setSession(RequestSession session) {
+        this.session = session;
+    }
+
+    /**
+     * 每个请求完成清除 ThreadLocal 中的数据
+     */
+    public void clear() {
+        holder.remove();
     }
 }

@@ -17,7 +17,9 @@ import java.util.function.Function;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
-/** 集合类工具 **/
+/**
+ * 集合类工具
+ **/
 public final class CollectsHelper {
     private CollectsHelper() {
     }
@@ -56,10 +58,10 @@ public final class CollectsHelper {
     }
 
     public static <T> List<T> filter(final List<T> list, Function<T, Boolean> compare) {
-        if(null == compare) {
+        if (null == compare) {
             return list;
         }
-        if(!isNullOrEmpty(list)) {
+        if (!isNullOrEmpty(list)) {
             return list.stream().filter(t -> compare.apply(t)).collect(Collectors.toList());
         }
         return Lists.newArrayList();
@@ -67,7 +69,7 @@ public final class CollectsHelper {
 
     public static <V> Map<Integer, V> asMap(final List<V> list) {
         Map<Integer, V> result = Maps.newHashMap();
-        if(!isNullOrEmpty(list)) {
+        if (!isNullOrEmpty(list)) {
             int size = list.size();
             for (int idx = 0; idx < size; idx++) {
                 result.put(idx, list.get(idx));
@@ -76,9 +78,9 @@ public final class CollectsHelper {
         return result;
     }
 
-    public static <K, V> LinkedHashMap<K, V>  ofMap(final List<V> list, final Function<V, K> keyF) {
+    public static <K, V> LinkedHashMap<K, V> ofMap(final List<V> list, final Function<V, K> keyF) {
         LinkedHashMap<K, V> result = Maps.newLinkedHashMap();
-        if(!isNullOrEmpty(list)) {
+        if (!isNullOrEmpty(list)) {
             for (V value : list) {
                 result.put(keyF.apply(value), value);
             }
@@ -88,7 +90,7 @@ public final class CollectsHelper {
 
     public static <K, V, R> ListMultimap<K, R> group(final List<V> list, final Function<V, Pair<K, R>> pairF) {
         ListMultimap<K, R> result = ArrayListMultimap.create();
-        if(!isNullOrEmpty(list)) {
+        if (!isNullOrEmpty(list)) {
             for (V v : list) {
                 Pair<K, R> pair = pairF.apply(v);
                 result.put(pair.getKey(), pair.getValue());
@@ -101,11 +103,11 @@ public final class CollectsHelper {
                                                              final Function<? super T, K> keyFunc,
                                                              final Function<? super T, ? extends U> groupByEle,
                                                              final Collector<? super U, A, R> valueCol) {
-        if(CollectsHelper.isNullOrEmpty(list)){
+        if (CollectsHelper.isNullOrEmpty(list)) {
             return Maps.newHashMap();
         }
         return list.stream().collect(Collectors
-                        .groupingBy(keyFunc,Collectors.mapping(groupByEle, valueCol)));
+                                             .groupingBy(keyFunc, Collectors.mapping(groupByEle, valueCol)));
 
     }
 
@@ -114,7 +116,7 @@ public final class CollectsHelper {
             return;
         }
         list.sort((o1, o2) -> {
-            for(Map.Entry<String, String> sort: sortM.entrySet()){
+            for (Map.Entry<String, String> sort : sortM.entrySet()) {
                 int sortV = "ASC".equalsIgnoreCase(sort.getValue()) ? 1 : ("DESC".equalsIgnoreCase(sort.getValue()) ? -1 : 0);
                 // 不重新排序
                 if ((0 == sortV) || (null == o1) || (null == o2) || BeanHelper.isPrimitiveType(o1.getClass())) {
@@ -144,14 +146,14 @@ public final class CollectsHelper {
                     return sortV > 0 ? v1.compareTo(v2) : v2.compareTo(v1);
                 }
                 // 字符串排序
-				else if (o1Val instanceof String){
-					String v1 = o1Val.toString();
-					String v2 = o2Val.toString();
-					if (0 == v1.compareTo(v2)) {
-						continue;
-					}
-					return sortV > 0 ? v1.compareTo(v2) : v2.compareTo(v1);
-				}
+                else if (o1Val instanceof String) {
+                    String v1 = o1Val.toString();
+                    String v2 = o2Val.toString();
+                    if (0 == v1.compareTo(v2)) {
+                        continue;
+                    }
+                    return sortV > 0 ? v1.compareTo(v2) : v2.compareTo(v1);
+                }
             }
             return 0;
         });

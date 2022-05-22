@@ -1,0 +1,180 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.summer.manage.dao.system.SysRoleDAO">
+
+    <sql id="selectRoleVo">
+	    SELECT DISTINCT r.id, r.role_name, r.role_key, r.role_sort, r.data_scope, r.menu_check_strictly, r.dept_check_strictly,
+            r.status, r.is_del, r.created_at, r.remark
+        FROM sys_role r
+	        LEFT JOIN sys_user_role ur ON ur.role_id = r.id
+	        LEFT JOIN sys_user u ON u.id = ur.user_id
+	        LEFT JOIN sys_dept d ON u.dept_id = d.id
+    </sql>
+    <insert id="insert" keyProperty="id" useGeneratedKeys="true">
+        INSERT INTO sys_role(
+        <if test="id != null and id != 0">id,</if>
+        <if test="roleName != null and roleName != ''">role_name,</if>
+        <if test="roleKey != null and roleKey != ''">role_key,</if>
+        <if test="roleSort != null ">role_sort,</if>
+        <if test="dataScope != null and dataScope != ''">data_scope,</if>
+        <if test="menuCheckStrictly != null">menu_check_strictly,</if>
+        <if test="deptCheckStrictly != null">dept_check_strictly,</if>
+        <if test="status != null and status != ''">status,</if>
+        <if test="remark != null and remark != ''">remark,</if>
+        <if test="createdBy != null and createdBy != ''">created_by,</if>
+        created_at
+        )values(
+        <if test="id != null and id != 0">#{id},</if>
+        <if test="roleName != null and roleName != ''">#{roleName},</if>
+        <if test="roleKey != null and roleKey != ''">#{roleKey},</if>
+        <if test="roleSort != null ">#{roleSort},</if>
+        <if test="dataScope != null and dataScope != ''">#{dataScope},</if>
+        <if test="menuCheckStrictly != null">#{menuCheckStrictly},</if>
+        <if test="deptCheckStrictly != null">#{deptCheckStrictly},</if>
+        <if test="status != null and status != ''">#{status},</if>
+        <if test="remark != null and remark != ''">#{remark},</if>
+        <if test="createdBy != null and createdBy != ''">#{createdBy},</if>
+        now()
+        )
+    </insert>
+    <insert id="batchRoleMenu">
+        INSERT INTO sys_role_menu(role_id, menu_id) values
+        <foreach item="item" index="index" collection="list" separator=",">
+            (#{item.roleId},#{item.menuId})
+        </foreach>
+    </insert>
+    <insert id="batchRoleDept">
+        INSERT INTO sys_role_dept(role_id, dept_id) VALUES
+        <foreach item="item" index="index" collection="list" separator=",">
+            (#{item.roleId},#{item.deptId})
+        </foreach>
+    </insert>
+    <update id="update">
+        UPDATE sys_role
+        <set>
+            <if test="roleName != null and roleName != ''">role_name = #{roleName},</if>
+            <if test="roleKey != null and roleKey != ''">role_key = #{roleKey},</if>
+            <if test="roleSort != null ">role_sort = #{roleSort},</if>
+            <if test="dataScope != null and dataScope != ''">data_scope = #{dataScope},</if>
+            <if test="menuCheckStrictly != null">menu_check_strictly = #{menuCheckStrictly},</if>
+            <if test="deptCheckStrictly != null">dept_check_strictly = #{deptCheckStrictly},</if>
+            <if test="status != null and status != ''">status = #{status},</if>
+            <if test="remark != null">remark = #{remark},</if>
+            <if test="updatedBy != null and updatedBy != ''">updated_by = #{updatedBy},</if>
+            updated_at = now()
+        </set>
+        WHERE id = #{id}
+    </update>
+    <delete id="deleteRoleByIds">
+        UPDATE sys_role SET is_del = '2' WHERE id IN
+        <foreach collection="array" item="roleId" open="(" separator="," close=")">
+            #{roleId}
+        </foreach>
+    </delete>
+    <delete id="deleteRoleDeptByRoleId">
+		DELETE FROM sys_role_dept WHERE role_id = #{id}
+	</delete>
+    <delete id="deleteRoleMenuByRoleId">
+		DELETE FROM sys_role_menu WHERE role_id= #{id}
+	</delete>
+
+    <select id="selectRolePermissionByUserId" resultType="com.summer.manage.entity.system.SysRole">
+        <include refid="selectRoleVo"/>
+        WHERE r.is_del = '0' AND ur.user_id = #{id}
+    </select>
+    <select id="selectRoleList" resultType="com.summer.manage.entity.system.SysRole">
+        <include refid="selectRoleVo"/>
+        WHERE r.is_del = '0'
+        <if test="roleName != null and roleName != ''">
+            AND r.role_name LIKE concat('%', #{roleName}, '%')
+        </if>
+        <if test="status != null and status != ''">
+            AND r.status = #{status}
+        </if>
+        <if test="roleKey != null and roleKey != ''">
+            AND r.role_key LIKE concat('%', #{roleKey}, '%')
+        </if>
+        <if test="params.beginTime != null and params.beginTime != ''"><!-- 开始时间检索 -->
+            AND date_format(r.created_at,'%y%m%d') &gt;= date_format(#{params.beginTime},'%y%m%d')
+        </if>
+        <if test="params.endTime != null and params.endTime != ''"><!-- 结束时间检索 -->
+            AND date_format(r.created_at,'%y%m%d') &lt;= date_format(#{params.endTime},'%y%m%d')
+        </if>
+        <!-- 数据范围过滤 -->
+        ${params.dataScope}
+        ORDER BY r.role_sort
+    </select>
+    <select id="selectRoleListByUserId" resultType="com.summer.manage.entity.system.SysRole">
+		SELECT r.*
+        FROM sys_role r
+	        LEFT JOIN sys_user_role ur ON ur.role_id = r.id
+	        LEFT JOIN sys_user u ON u.id = ur.user_id
+	    WHERE u.id = #{userId}
+	</select>
+    <select id="selectRoleListPage" resultType="com.summer.manage.entity.system.SysRole">
+        <include refid="selectRoleVo"/>
+        WHERE r.is_del = '0'
+        <if test="roleName != null and roleName != ''">
+            AND r.role_name LIKE concat('%', #{roleName}, '%')
+        </if>
+        <if test="status != null and status != ''">
+            AND r.status = #{status}
+        </if>
+        <if test="roleKey != null and roleKey != ''">
+            AND r.role_key LIKE concat('%', #{roleKey}, '%')
+        </if>
+        <if test="beginTime != null and beginTime != ''"><!-- 开始时间检索 -->
+            AND date_format(r.created_at,'%y%m%d') &gt;= date_format(#{beginTime},'%y%m%d')
+        </if>
+        <if test="endTime != null and endTime != ''"><!-- 结束时间检索 -->
+            AND date_format(r.created_at,'%y%m%d') &lt;= date_format(#{endTime},'%y%m%d')
+        </if>
+        <!-- 数据范围过滤 -->
+        <if test="params != null">
+            ${params.dataScope}
+        </if>
+        ORDER BY r.role_sort LIMIT #{offset}, #{size};
+    </select>
+    <select id="selectRoleListPageCount" resultType="java.lang.Long">
+        SELECT COUNT(DISTINCT r.id)
+        FROM sys_role r
+        LEFT JOIN sys_user_role ur ON ur.role_id = r.id
+        LEFT JOIN sys_user u ON u.id = ur.user_id
+        LEFT JOIN sys_dept d ON u.dept_id = d.id
+        WHERE r.is_del = '0'
+        <if test="roleName != null and roleName != ''">
+            AND r.role_name LIKE concat('%', #{roleName}, '%')
+        </if>
+        <if test="status != null and status != ''">
+            AND r.status = #{status}
+        </if>
+        <if test="roleKey != null and roleKey != ''">
+            AND r.role_key LIKE concat('%', #{roleKey}, '%')
+        </if>
+        <if test="beginTime != null and beginTime != ''"><!-- 开始时间检索 -->
+            AND date_format(r.created_at,'%y%m%d') &gt;= date_format(#{beginTime},'%y%m%d')
+        </if>
+        <if test="endTime != null and endTime != ''"><!-- 结束时间检索 -->
+            AND date_format(r.created_at,'%y%m%d') &lt;= date_format(#{endTime},'%y%m%d')
+        </if>
+        <!-- 数据范围过滤 -->
+        <if test="params != null">
+            ${params.dataScope}
+        </if>
+    </select>
+    <select id="selectRoleById" resultType="com.summer.manage.entity.system.SysRole">
+        <include refid="selectRoleVo"/>
+        where r.id = #{id}
+    </select>
+    <select id="checkRoleNameUnique" resultType="com.summer.manage.entity.system.SysRole">
+        <include refid="selectRoleVo"/>
+        WHERE r.role_name=#{roleName} AND r.is_del = '0' LIMIT 1
+    </select>
+    <select id="checkRoleKeyUnique" resultType="com.summer.manage.entity.system.SysRole">
+        <include refid="selectRoleVo"/>
+        WHERE r.role_key=#{roleKey} AND r.is_del = '0' LIMIT 1
+    </select>
+    <select id="countUserRoleByRoleId" resultType="java.lang.Integer">
+		SELECT COUNT(1) FROM sys_user_role WHERE role_id = #{roleId}
+	</select>
+</mapper>

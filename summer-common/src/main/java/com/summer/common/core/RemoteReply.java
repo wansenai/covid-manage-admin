@@ -30,18 +30,18 @@ public class RemoteReply<R> implements Serializable {
     }
 
     public <T> T body() {
-        if(success()) {
+        if (success()) {
             // 直接返回字符串
-            if(String.class.equals(rt)) {
-                return !StringHelper.isBlank(body) ? (T)body : (T)StringHelper.EMPTY;
+            if (String.class.equals(rt)) {
+                return !StringHelper.isBlank(body) ? (T) body : (T) StringHelper.EMPTY;
             }
             // 返回 bytes
             else if (byte[].class.equals(rt) || Byte[].class.equals(rt)) {
-                return !StringHelper.isBlank(body) ? (T) BytesHelper.utf8Bytes(body) : (T)new byte[0];
+                return !StringHelper.isBlank(body) ? (T) BytesHelper.utf8Bytes(body) : (T) new byte[0];
             }
             // 返回 json
             else {
-                return body.startsWith("[") && body.endsWith("]") ? (T) JsonHelper.parseArray(body, rt) : (T)JsonHelper.parseObject(body, rt);
+                return body.startsWith("[") && body.endsWith("]") ? (T) JsonHelper.parseArray(body, rt) : (T) JsonHelper.parseObject(body, rt);
             }
         } else {
             throw new RpcException(ICodeMSG.create(code, body));

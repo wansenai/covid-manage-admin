@@ -2,7 +2,9 @@ package com.summer.common.core;
 
 import java.util.concurrent.TimeUnit;
 
-/** 缓存过期键值 **/
+/**
+ * 缓存过期键值
+ **/
 public enum ExpireKey {
     Forever(0, TimeUnit.MILLISECONDS, "不过期"),
     Seconds1(1, TimeUnit.SECONDS, "1秒"),
@@ -19,6 +21,7 @@ public enum ExpireKey {
 
     public final int expire;
     public final TimeUnit unit;
+
     ExpireKey(int expire, TimeUnit unit, String desc) {
         this.expire = expire;
         this.unit = unit;

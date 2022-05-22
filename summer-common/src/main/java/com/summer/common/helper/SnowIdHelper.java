@@ -7,24 +7,26 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.UUID;
 
-/** 分布式唯一 ID 生成器 **/
+/**
+ * 分布式唯一 ID 生成器
+ **/
 public final class SnowIdHelper {
     // 标准雪花算法ID, 18L
     private static final Worker ID_WORKER = new Worker(10);
 
-    public static String unique(){
+    private SnowIdHelper() {
+    }
+
+    public static String unique() {
         return String.valueOf(ID_WORKER.nextId());
     }
 
-    public static long nextId(){
+    public static long nextId() {
         return ID_WORKER.nextId();
     }
 
     public static String uuid() {
         return EncryptHelper.md5(UUID.randomUUID().toString() + NetworkHelper.machineIP() + System.currentTimeMillis());
-    }
-
-    private SnowIdHelper() {
     }
 
     /**
@@ -46,24 +48,44 @@ public final class SnowIdHelper {
         private static final long SEQUENCE_BITS = 12L;
         // 生成序列的掩码，这里为4095 (0b111111111111=0xfff=4095)
         private static final long SEQUENCE_MASK = 4095L;
-
+        /**
+         * 机器ID（0～1023, 最大占10位）
+         **/
+        private final int machineId;
+        /**
+         * 时间截向左移位(12 + 自定义位数)
+         **/
+        private final long timestampLeftShift;
         // 毫秒内序列(0~4095)
         private long sequence = 0L;
         // 上次生成ID的时间截
         private long lastTimestamp = -1L;
 
-        /** 机器ID（0～1023, 最大占10位） **/
-        private final int machineId;
-        /** 时间截向左移位(12 + 自定义位数) **/
-        private final long timestampLeftShift;
-
-        /** 自定义机器号位数， 范围 [0 — 10] **/
+        /**
+         * 自定义机器号位数， 范围 [0 — 10]
+         **/
         public Worker(int bits) {
-            if(bits < 0 || bits > 10) {
+            if (bits < 0 || bits > 10) {
                 throw new IllegalArgumentException("Custom bits can't be greater than 10 or less than 0");
             }
             this.machineId = machineId(bits);
             this.timestampLeftShift = SEQUENCE_BITS + bits;
+        }
+
+        private static int ipGenerator(int bits) {
+            String ip = NetworkHelper.machineIP();
+            if (StringHelper.isBlank(ip)) {
+                return 0;
+            }
+            String binaryIp = Long.toBinaryString(NetworkHelper.ip2long(ip));
+            int ipLength = binaryIp.length();
+            return Integer.valueOf((ipLength > bits ? binaryIp.substring(ipLength - bits) : binaryIp), 2);
+        }
+
+        private static long start() {
+            String nowYear = LocalDate.now().getYear() + "-01-01 00:00:00";
+            return 1000 * LocalDate.parse(nowYear, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
+                                   .atStartOfDay().atZone(ZoneId.systemDefault()).toEpochSecond();
         }
 
         // 获得下一个ID (该方法是线程安全的)
@@ -94,6 +116,7 @@ public final class SnowIdHelper {
             //移位并通过或运算拼到一起组成64位的ID
             return ((timestamp - START) << timestampLeftShift) | (machineId << SEQUENCE_BITS) | sequence;
         }
+
         // 阻塞到下一个毫秒，直到获得新的时间戳
         long tilNextMillis(long lastTimestamp) {
             long timestamp = System.currentTimeMillis();
@@ -104,42 +127,28 @@ public final class SnowIdHelper {
         }
 
         private int machineId(int bits) {
-            if("hostname".equalsIgnoreCase(SpringHelper.confValue(IConstant.KEY_SNOW_MID_GENERATOR))) {
+            if ("hostname".equalsIgnoreCase(SpringHelper.confValue(IConstant.KEY_SNOW_MID_GENERATOR))) {
                 return hostNameGenerator(bits);
             }
             return ipGenerator(bits);
         }
+
         private int hostNameGenerator(int customBits) {
             String hostName = NetworkHelper.localHostName();
             int lastIndex = hostName.lastIndexOf(".");
-            if(lastIndex < 0 || (lastIndex + 1) == hostName.length()) {
+            if (lastIndex < 0 || (lastIndex + 1) == hostName.length()) {
                 return 0;
             }
             String machineId = hostName.substring(lastIndex + 1);
-            if(StringHelper.isNumeric(machineId)) {
+            if (StringHelper.isNumeric(machineId)) {
                 int mid = Integer.parseInt(machineId);
                 long maxId = ~(-1L << customBits);
-                if(mid > maxId) {
+                if (mid > maxId) {
                     throw new RuntimeException("Machine hostname number can't be greater than " + maxId + " or less than 0");
                 }
                 return mid;
             }
             return 0;
-        }
-        private static int ipGenerator(int bits) {
-            String ip = NetworkHelper.machineIP();
-            if(StringHelper.isBlank(ip)) {
-                return 0;
-            }
-            String binaryIp = Long.toBinaryString(NetworkHelper.ip2long(ip));
-            int ipLength = binaryIp.length();
-            return Integer.valueOf((ipLength > bits ? binaryIp.substring(ipLength - bits) : binaryIp), 2);
-        }
-
-        private static long start() {
-            String nowYear = LocalDate.now().getYear() + "-01-01 00:00:00";
-            return 1000 * LocalDate.parse(nowYear, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
-                                   .atStartOfDay().atZone(ZoneId.systemDefault()).toEpochSecond();
         }
     }
 }

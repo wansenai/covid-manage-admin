@@ -6,8 +6,8 @@ import org.apache.commons.lang.builder.HashCodeBuilder;
 
 public class ShardInfo {
 
-    public final int    dsIndex;
-    public final int    tabIndex;
+    public final int dsIndex;
+    public final int tabIndex;
 
     public ShardInfo(int dsIndex, int tabIndex) {
         this.dsIndex = dsIndex;

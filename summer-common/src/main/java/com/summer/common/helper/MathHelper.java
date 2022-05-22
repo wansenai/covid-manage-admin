@@ -11,7 +11,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
-/** 数字工具类 **/
+/**
+ * 数字工具类
+ **/
 public final class MathHelper {
     private static final Random RANDOM = new Random();
 
@@ -29,8 +31,8 @@ public final class MathHelper {
         StringBuilder sb = new StringBuilder();
         list.forEach(sb::append);
         // 防止随机数字首位为 0
-        if(length > 1 && 0 == list.get(0)) {
-            if(0 != list.get(length -1)) {
+        if (length > 1 && 0 == list.get(0)) {
+            if (0 != list.get(length - 1)) {
                 return sb.reverse().toString();
             } else {
                 int first = RANDOM.nextInt(9) + 1;
@@ -49,18 +51,18 @@ public final class MathHelper {
     }
 
     public static long toLong(final String num, long defaultVal) {
-        try{
+        try {
             return StringHelper.isNumeric(num) ? Long.parseLong(num) : defaultVal;
-        } catch (Exception e){
+        } catch (Exception e) {
             return defaultVal;
         }
     }
 
     public static int nvl(final Integer num) {
-        return nvl(num,0);
+        return nvl(num, 0);
     }
 
-    public static int nvl(final Integer num,Integer defaultVal) {
+    public static int nvl(final Integer num, Integer defaultVal) {
         return num == null ? defaultVal : num;
     }
 
@@ -74,15 +76,15 @@ public final class MathHelper {
         return numP < 0 ? 0L : numP;
     }
 
-    public static int toInt(final String num, int defaultVal){
-        try{
+    public static int toInt(final String num, int defaultVal) {
+        try {
             return StringHelper.isNumeric(num) ? Integer.parseInt(num) : defaultVal;
-        } catch (Exception e){
+        } catch (Exception e) {
             return defaultVal;
         }
     }
 
-    public static boolean nvl(final Boolean bool){
+    public static boolean nvl(final Boolean bool) {
         return null == bool ? Boolean.FALSE : bool;
     }
 
@@ -95,15 +97,15 @@ public final class MathHelper {
         return decimal.scale() < scale ? decimal : decimal.setScale(scale, BigDecimal.ROUND_HALF_UP);
     }
 
-    public static int ceil(final Long total, final Integer size){
-        if(nvl(total) <= 0 || nvl(size) <= 0){
+    public static int ceil(final Long total, final Integer size) {
+        if (nvl(total) <= 0 || nvl(size) <= 0) {
             return 0;
         }
-        return (int)(Math.ceil(total.doubleValue() / size.doubleValue()));
+        return (int) (Math.ceil(total.doubleValue() / size.doubleValue()));
     }
 
-    public static boolean isBetween(final Number val, final Number min, final Number max){
-        if(null == val || null == min || null == max){
+    public static boolean isBetween(final Number val, final Number min, final Number max) {
+        if (null == val || null == min || null == max) {
             return false;
         }
         BigDecimal rv = new BigDecimal(String.valueOf(val));
@@ -111,18 +113,18 @@ public final class MathHelper {
                 && rv.compareTo(new BigDecimal(String.valueOf(max))) <= 0;
     }
 
-    public static double minPacket(){
+    public static double minPacket() {
         return 0.01;
     }
 
-    public static LinkedHashMap<Integer, Double> packets(double amount, int count){
-        if(0 == count){
+    public static LinkedHashMap<Integer, Double> packets(double amount, int count) {
+        if (0 == count) {
             return Maps.newLinkedHashMap();
         }
         LinkedHashMap<Integer, Double> packets = generatorPackets(amount, count);
         //如果 Packets 分配出错，重试三次
-        for(int i = 0; i < 3; i++) {
-            if(packets.size() == count){
+        for (int i = 0; i < 3; i++) {
+            if (packets.size() == count) {
                 return packets;
             }
             if (packets.size() < count) {
@@ -140,9 +142,9 @@ public final class MathHelper {
         packet(amount, count, map);
         LinkedHashMap<Integer, Double> packets = Maps.newLinkedHashMap();
         map.entrySet().stream()
-                .sorted(Comparator.comparing(e -> e.getValue()))
-                .filter(e -> e.getValue() > 0)
-                .forEach(e -> packets.put(e.getKey(), e.getValue()));
+           .sorted(Comparator.comparing(e -> e.getValue()))
+           .filter(e -> e.getValue() > 0)
+           .forEach(e -> packets.put(e.getKey(), e.getValue()));
         return packets;
     }
 
@@ -153,10 +155,10 @@ public final class MathHelper {
             return;
         }
         Random r = new Random();
-        double min   = minPacket();
-        double max   = amount / count * 2;
+        double min = minPacket();
+        double max = amount / count * 2;
         double money = r.nextDouble() * max;
-        money = money <= min ? minPacket(): money;
+        money = money <= min ? minPacket() : money;
         money = Math.floor(money * 100) / 100;
         count--;
         amount -= money;

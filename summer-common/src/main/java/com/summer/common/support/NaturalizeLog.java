@@ -24,52 +24,41 @@ import java.io.Serializable;
 public final class NaturalizeLog implements Serializable {
     private static final long serialVersionUID = -7609194429024402135L;
     private static final String HOST = StringHelper.defaultIfBlank(NetworkHelper.machineIP(), NetworkHelper.localHostName());
-
+    // 异常最大长度为 2K
+    private static final int LEN = 1024, M_LEN = 4 * LEN;
     @Property(type = Typical.Long, desc = "日志ID")
     public long logId;
-
     @Property(type = Typical.Keyword, analyzer = "not_analyzed", desc = "请求ID")
     public String rid;
-
     @Property(type = Typical.Keyword, analyzer = "not_analyzed", desc = "spanId")
     public String span;
-
     @Property(type = Typical.Double, desc = "输出日志时间")
     @JSONField(ordinal = 1, format = "#.000")
     public Double time;
-
     @JSONField(ordinal = 2)
     @Property(type = Typical.Keyword, analyzer = "not_analyzed", desc = "输出日志的类")
     public String clz;
-
     @JSONField(ordinal = 3)
     @Property(type = Typical.Integer, desc = "输出日志的行号")
     public Integer line;
-
     @JSONField(ordinal = 4)
     @Property(type = Typical.Text, desc = "日志信息")
     public String msg;
-
     @JSONField(ordinal = 5)
     @Property(type = Typical.Keyword, analyzer = "not_analyzed", desc = "输出日志的线程")
     public String thread;
-
     @JSONField(ordinal = 6)
     @Property(type = Typical.Keyword, analyzer = "not_analyzed", desc = "日志级别")
     public String level;
-
     @JSONField(ordinal = 7)
     @Property(type = Typical.Keyword, analyzer = "not_analyzed", desc = "输出日志的主机")
     public String host;
-
     @JSONField(ordinal = 8)
     @Property(type = Typical.Keyword, analyzer = "not_analyzed", desc = "输出日志的服务名")
     public String sn;
-
     @JSONField(ordinal = 9)
     @Property(type = Typical.Long, desc = "接口访问到输出日志耗时")
     public Long cost;
-
     @JSONField(ordinal = 10)
     @Property(type = Typical.Text, desc = "异常信息")
     public String cause;
@@ -103,13 +92,13 @@ public final class NaturalizeLog implements Serializable {
         StackTraceElement[] cda = event.getCallerData();
         if (cda != null && cda.length > 0) {
             this.clz = cda[0].getClassName();
-            this.line =  cda[0].getLineNumber();
+            this.line = cda[0].getLineNumber();
         } else {
-            this.clz = CallerData.NA; this.line = -1;
+            this.clz = CallerData.NA;
+            this.line = -1;
         }
     }
-    // 异常最大长度为 2K
-    private static final int LEN = 1024, M_LEN = 4 * LEN;
+
     private void insertCauseMessage(ILoggingEvent event) {
         IThrowableProxy tp = event.getThrowableProxy();
         if (null != tp) {
@@ -135,7 +124,7 @@ public final class NaturalizeLog implements Serializable {
                 }
                 this.cause = sb.toString();
             }
-            if("true".equals(SpringHelper.confValue(IConstant.KEY_LOG_CAUSE_TRACE_STDOUT))) {
+            if ("true".equals(SpringHelper.confValue(IConstant.KEY_LOG_CAUSE_TRACE_STDOUT))) {
                 System.out.println("@trace " + this.cause);
                 this.cause = CoreConstants.EMPTY_STRING;
             }

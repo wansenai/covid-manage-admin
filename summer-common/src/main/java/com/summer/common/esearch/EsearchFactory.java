@@ -18,9 +18,11 @@ import java.util.List;
 import java.util.Map;
 
 public final class EsearchFactory {
+    static final Map<String, EsearchOperations> ES_MAP = Maps.newConcurrentMap();
     private static final Logger LOG = LoggerFactory.getLogger(EsearchFactory.class);
 
-    static final Map<String, EsearchOperations> ES_MAP = Maps.newConcurrentMap();
+    private EsearchFactory() {
+    }
 
     public static EsearchOperations get(String esId) {
         return ES_MAP.get(esId);
@@ -30,7 +32,7 @@ public final class EsearchFactory {
         List<String> indices = Lists.newArrayList();
         String eomKey = EomInitializer.CIT_MAP.get(clazz).getKey();
         Pair<String, Integer> pars = EomInitializer.partitions(eomKey);
-        for(int hash=0; hash < pars.getValue(); hash++) {
+        for (int hash = 0; hash < pars.getValue(); hash++) {
             indices.add(pars.getKey() + hash);
         }
         return indices;
@@ -40,27 +42,27 @@ public final class EsearchFactory {
         return EomInitializer.CIT_MAP.get(clazz).getValue();
     }
 
-    private EsearchFactory() {}
-
-    /** ES://cluster@host:port,host:port,host:port */
+    /**
+     * ES://cluster@host:port,host:port,host:port
+     */
     public static TransportClient transportClient(String uri) {
-        if(StringHelper.isBlank(uri)) {
+        if (StringHelper.isBlank(uri)) {
             throw new EsearchException("elasticsearch uri must not blank or null");
         }
         String clusterName = StringHelper.substringBetween(uri, "ES://", "@");
-        if(StringHelper.isBlank(clusterName)) {
+        if (StringHelper.isBlank(clusterName)) {
             throw new EsearchException("elasticsearch uri must format with ES://cluster@host:port,host:port,host:port ");
         }
         LOG.info("elasticsearch cluster name: {}", clusterName);
         String addresses = uri.substring(uri.indexOf("@") + 1);
-        if(StringHelper.isBlank(addresses)) {
+        if (StringHelper.isBlank(addresses)) {
             throw new EsearchException("elasticsearch uri must format with ES://cluster@host:port,host:port,host:port ");
         }
         LOG.info("elasticsearch addresses: {}", addresses);
         Settings settings = Settings.builder().put("cluster.name", clusterName).build();
         TransportClient transportClient = new PreBuiltTransportClient(settings);
         String[] serverAddresses = addresses.split(",");
-        for(String address: serverAddresses) {
+        for (String address : serverAddresses) {
             String[] serverAddress = address.split(":");
             int port = Integer.parseInt(serverAddress[1]);
             try {

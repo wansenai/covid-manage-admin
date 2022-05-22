@@ -10,15 +10,23 @@ import java.lang.annotation.Target;
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
 public @interface Cachedable {
-    /** 缓存执行操作 **/
+    /**
+     * 缓存执行操作
+     **/
     Command cmd();
 
-    /** 缓存时长(单位： 秒), 0-永久缓存, Command.InGet 时启作用 **/
+    /**
+     * 缓存时长(单位： 秒), 0-永久缓存, Command.InGet 时启作用
+     **/
     int expire() default 0;
 
-    /** 禁用缓存， 作用于方法级 **/
+    /**
+     * 禁用缓存， 作用于方法级
+     **/
     boolean disabled() default false;
 
-    /** 缓存KEY生成器 **/
+    /**
+     * 缓存KEY生成器
+     **/
     Class<? extends CachedStrategy> clz();
 }

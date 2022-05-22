@@ -15,26 +15,29 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.Supplier;
 
-/** 网络信息工具类 **/
+/**
+ * 网络信息工具类
+ **/
 public final class NetworkHelper {
     private static final Logger LOG = LoggerFactory.getLogger(NetworkHelper.class);
-    private NetworkHelper() {
-    }
     private static final List<InetAddress> LOCAL_IPS = Lists.newArrayList();
     private static final List<InetAddress> INNER_IPS = Lists.newArrayList();
     private static final List<InetAddress> OUTER_IPS = Lists.newArrayList();
+    @SuppressWarnings("unused") //以网卡顺序排序
+    private static String MIN_LB_IP, MAX_LB_IP, MIN_INNER_IP, MAX_INNER_IP, MIN_OUTER_IP, MAX_OUTER_IP;
+
     static {
         try {
             Enumeration<NetworkInterface> networkInterfaces = NetworkInterface.getNetworkInterfaces();
             while (networkInterfaces.hasMoreElements()) {
                 NetworkInterface networkInterface = networkInterfaces.nextElement();
-                if(isFictitious(networkInterface.getDisplayName(), networkInterface.getName())){
+                if (isFictitious(networkInterface.getDisplayName(), networkInterface.getName())) {
                     continue;
                 }
                 Enumeration<InetAddress> inAddresses = networkInterface.getInetAddresses();
                 while (inAddresses.hasMoreElements()) {
                     InetAddress inetAddress = inAddresses.nextElement();
-                    if(inetAddress instanceof Inet4Address && null != inetAddress.getHostAddress()) {
+                    if (inetAddress instanceof Inet4Address && null != inetAddress.getHostAddress()) {
                         //本机的地址，以127开头的IP地址
                         if (inetAddress.isLoopbackAddress()) {
                             LOCAL_IPS.add(inetAddress);
@@ -44,7 +47,7 @@ public final class NetworkHelper {
                             INNER_IPS.add(inetAddress);
                         }
                         //其他地址可认为外网地址
-                        if(!inetAddress.isAnyLocalAddress()
+                        if (!inetAddress.isAnyLocalAddress()
                                 && !inetAddress.isLoopbackAddress()
                                 && !inetAddress.isLinkLocalAddress()
                                 && !inetAddress.isSiteLocalAddress()) {
@@ -57,60 +60,86 @@ public final class NetworkHelper {
             throw new RuntimeException("To find device all address error.....", e);
         }
     }
-    @SuppressWarnings("unused") //以网卡顺序排序
-    private static String MIN_LB_IP, MAX_LB_IP, MIN_INNER_IP, MAX_INNER_IP, MIN_OUTER_IP, MAX_OUTER_IP;
-    /** 最小本地IP **/
-    public static String minLocalIp(){
+
+    private NetworkHelper() {
+    }
+
+    /**
+     * 最小本地IP
+     **/
+    public static String minLocalIp() {
         return machineIP(MIN_LB_IP, () -> CollectsHelper.head(LOCAL_IPS));
     }
-    /** 最大本地IP **/
-    public static String maxLocalIp(){
+
+    /**
+     * 最大本地IP
+     **/
+    public static String maxLocalIp() {
         return machineIP(MAX_LB_IP, () -> CollectsHelper.head(LOCAL_IPS));
     }
-    /** 最小内网IP **/
-    public static String minInnerIp(){
+
+    /**
+     * 最小内网IP
+     **/
+    public static String minInnerIp() {
         return machineIP(MIN_INNER_IP, () -> CollectsHelper.head(INNER_IPS));
     }
-    /** 最大内网IP **/
-    public static String maxInnerIp(){
+
+    /**
+     * 最大内网IP
+     **/
+    public static String maxInnerIp() {
         return machineIP(MAX_INNER_IP, () -> CollectsHelper.end(INNER_IPS));
     }
-    /** 最小外网IP **/
+
+    /**
+     * 最小外网IP
+     **/
     public static String minOuterIp() {
         return machineIP(MIN_OUTER_IP, () -> CollectsHelper.head(OUTER_IPS));
     }
-    /** 最大外网IP **/
+
+    /**
+     * 最大外网IP
+     **/
     public static String maxOuterIp() {
         return machineIP(MAX_OUTER_IP, () -> CollectsHelper.end(OUTER_IPS));
     }
+
     public static List<InetAddress> innerNetAddressGet() {
         return Collections.unmodifiableList(INNER_IPS);
     }
-    /** 获取本机网卡IP **/
+
+    /**
+     * 获取本机网卡IP
+     **/
     public static String machineIP() {
         String ip = NetworkHelper.maxInnerIp();
-        if(noMappingIp(ip)) {
+        if (noMappingIp(ip)) {
             ip = NetworkHelper.minInnerIp();
         }
-        if(noMappingIp(ip)) {
+        if (noMappingIp(ip)) {
             ip = NetworkHelper.maxOuterIp();
         }
-        if(noMappingIp(ip)) {
+        if (noMappingIp(ip)) {
             ip = NetworkHelper.minOuterIp();
         }
-        if(noMappingIp(ip)) {
+        if (noMappingIp(ip)) {
             ip = NetworkHelper.maxLocalIp();
         }
-        if(noMappingIp(ip)) {
+        if (noMappingIp(ip)) {
             ip = NetworkHelper.minLocalIp();
         }
-        if(noMappingIp(ip)) {
+        if (noMappingIp(ip)) {
             LOG.warn("can not find the machine ip.....");
             return "";
         }
         return ip;
     }
-    /** IPv4转换成十进制数 **/
+
+    /**
+     * IPv4转换成十进制数
+     **/
     public static long ip2long(String ip) {
         if (noMappingIp(ip)) {
             return 0;
@@ -125,16 +154,22 @@ public final class NetworkHelper {
         }
         return 0;
     }
-    /** 十进制数转换成IPv4 **/
+
+    /**
+     * 十进制数转换成IPv4
+     **/
     public static String long2ip(long ip) {
         StringBuilder sb = new StringBuilder();
         sb.append((ip >> 24) & 0xFF).append('.')
-                .append((ip >> 16) & 0xFF).append('.')
-                .append((ip >> 8) & 0xFF).append('.')
-                .append((ip >> 0) & 0xFF);
+          .append((ip >> 16) & 0xFF).append('.')
+          .append((ip >> 8) & 0xFF).append('.')
+          .append((ip >> 0) & 0xFF);
         return sb.toString();
     }
-    /** 获取客户端真实IP **/
+
+    /**
+     * 获取客户端真实IP
+     **/
     public static String ofClientIp(HttpServletRequest request) {
         String fromSource = "X-Forwarded-For";
         String ip = request.getHeader(fromSource);
@@ -157,7 +192,10 @@ public final class NetworkHelper {
         LOG.debug("fromSource: {}, ip: {}", fromSource, ip);
         return "0:0:0:0:0:0:0:1".equals(ip) ? machineIP() : ip.split(",")[0].trim();
     }
-    /** 获取本地 HOST NAME **/
+
+    /**
+     * 获取本地 HOST NAME
+     **/
     public static String localHostName() {
         String cn = System.getenv("COMPUTERNAME");
         if (null != cn && cn.trim().length() > 0) {
@@ -190,8 +228,9 @@ public final class NetworkHelper {
     private static boolean isFictitious(String desc, String name) {
         return (null != desc && desc.trim().startsWith("VMware")) || (null != name && name.trim().startsWith("docker"));
     }
+
     private static String machineIP(String rs, Supplier<Optional<InetAddress>> supplier) {
-        if(null == rs || rs.trim().length() < 1) {
+        if (null == rs || rs.trim().length() < 1) {
             Optional<InetAddress> itOpt = supplier.get();
             if (itOpt.isPresent()) {
                 rs = itOpt.get().getHostAddress();

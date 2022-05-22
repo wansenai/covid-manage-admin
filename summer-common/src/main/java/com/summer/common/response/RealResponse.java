@@ -7,7 +7,6 @@ import java.lang.annotation.Target;
 
 /**
  * 标记原始类型响应数据，不进行数据结构体包装
- *
  */
 @Target({ElementType.METHOD, ElementType.ANNOTATION_TYPE})
 @Retention(RetentionPolicy.RUNTIME)

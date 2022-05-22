@@ -30,21 +30,24 @@ public enum CommonCode implements ICodeMSG {
 
     RequestMaxExceeded(413, "请求数据过大，服务器无法处理"),
 
-     SvError(500, "服务异常，请联系系统管理员");
+    SvError(500, "服务异常，请联系系统管理员");
 
 
     private final int code;
     private final String desc;
+
     CommonCode(int code, String desc) {
         this.code = code;
         this.desc = desc;
     }
 
-    @Override public int code() {
+    @Override
+    public int code() {
         return code;
     }
 
-    @Override public String msg() {
+    @Override
+    public String msg() {
         return desc;
     }
 }

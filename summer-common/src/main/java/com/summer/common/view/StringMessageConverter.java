@@ -9,7 +9,7 @@ import java.nio.charset.Charset;
 public final class StringMessageConverter extends StringHttpMessageConverter {
     public static final StringMessageConverter INSTANCE = new StringMessageConverter();
 
-    private StringMessageConverter(){
+    private StringMessageConverter() {
         super(Charset.forName("UTF-8"));
         super.setWriteAcceptCharset(false);
         super.setSupportedMediaTypes(Lists.newArrayList(MediaType.TEXT_PLAIN,

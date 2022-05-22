@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.summer.manage.dao.system.SysDictTypeDAO">
+    <insert id="insertDictType">
+        INSERT INTO sys_dict_type(
+        <if test="dictName != null and dictName != ''">dict_name,</if>
+        <if test="dictType != null and dictType != ''">dict_type,</if>
+        <if test="status != null">status,</if>
+        <if test="remark != null and remark != ''">remark,</if>
+        <if test="createdBy != null and createdBy != ''">created_by,</if>
+        created_at
+        )VALUES(
+        <if test="dictName != null and dictName != ''">#{dictName},</if>
+        <if test="dictType != null and dictType != ''">#{dictType},</if>
+        <if test="status != null">#{status},</if>
+        <if test="remark != null and remark != ''">#{remark},</if>
+        <if test="createdBy != null and createdBy != ''">#{createdBy},</if>
+        now()
+        )
+    </insert>
+    <update id="updateDictType">
+        UPDATE sys_dict_type
+        <set>
+            <if test="dictName != null and dictName != ''">dict_name = #{dictName},</if>
+            <if test="dictType != null and dictType != ''">dict_type = #{dictType},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="remark != null">remark = #{remark},</if>
+            <if test="updatedBy != null and updatedBy != ''">updated_by = #{updatedBy},</if>
+            updated_at = now()
+        </set>
+        WHERE id = #{id}
+    </update>
+    <delete id="deleteDictTypeByIds">
+        DELETE FROM sys_dict_type WHERE id IN
+        <foreach collection="array" item="dictId" open="(" separator="," close=")">
+            #{dictId}
+        </foreach>
+    </delete>
+
+    <select id="listType" resultType="com.summer.manage.entity.system.SysDictType">
+        SELECT *
+        FROM sys_dict_type
+        <where>
+            <if test="dictName != null and dictName != ''">
+                AND dict_name LIKE concat('%', #{dictName}, '%')
+            </if>
+            <if test="status != null and status != ''">
+                AND status = #{status}
+            </if>
+            <if test="dictType != null and dictType != ''">
+                AND dict_type LIKE concat('%', #{dictType}, '%')
+            </if>
+            <if test="beginTime != null and beginTime != ''"><!-- 开始时间检索 -->
+                AND date_format(created_at,'%y%m%d') &gt;= date_format(#{beginTime},'%y%m%d')
+            </if>
+            <if test="endTime != null and endTime != ''"><!-- 结束时间检索 -->
+                AND date_format(created_at,'%y%m%d') &lt;= date_format(#{endTime},'%y%m%d')
+            </if>
+        </where>
+        ORDER BY created_at LIMIT #{offset}, #{size};
+    </select>
+    <select id="listTypeCount" resultType="java.lang.Long">
+        SELECT COUNT(*)
+        FROM sys_dict_type
+        <where>
+            <if test="dictName != null and dictName != ''">
+                AND dict_name LIKE concat('%', #{dictName}, '%')
+            </if>
+            <if test="status != null and status != ''">
+                AND status = #{status}
+            </if>
+            <if test="dictType != null and dictType != ''">
+                AND dict_type LIKE concat('%', #{dictType}, '%')
+            </if>
+            <if test="beginTime != null and beginTime != ''"><!-- 开始时间检索 -->
+                AND date_format(created_at,'%y%m%d') &gt;= date_format(#{beginTime},'%y%m%d')
+            </if>
+            <if test="endTime != null and endTime != ''"><!-- 结束时间检索 -->
+                AND date_format(created_at,'%y%m%d') &lt;= date_format(#{endTime},'%y%m%d')
+            </if>
+        </where>
+    </select>
+    <select id="checkDictTypeUnique" resultType="com.summer.manage.entity.system.SysDictType">
+		SELECT *
+		FROM sys_dict_type
+		WHERE dict_type = #{dictType} LIMIT 1
+	</select>
+    <select id="selectDictTypeById" resultType="com.summer.manage.entity.system.SysDictType">
+		SELECT *
+		FROM sys_dict_type
+		WHERE id = #{id}
+	</select>
+</mapper>

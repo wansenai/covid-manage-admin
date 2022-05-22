@@ -31,7 +31,7 @@ git pull
 mvn clean install
 CheckCmd
 
-JARS=/data/deploys/${JAR_NAME}
+JARS=/project/deploys/${JAR_NAME}
 mkdir -p ${JARS}
 CheckCmd
 
@@ -40,4 +40,4 @@ CheckCmd
 
 echo "the jar at $JARS directory"
 
-deploy ${JAR_NAME} ${dockerN} ${ENV}
+deploy-font ${JAR_NAME} ${dockerN} ${ENV}

@@ -10,7 +10,9 @@ import java.util.Set;
 public interface ITransCompensate {
     Logger LOG = LoggerFactory.getLogger(ITransCompensate.class);
 
-    /** 事务部分被提交的处理方式， 用户可根据需要自定义 **/
+    /**
+     * 事务部分被提交的处理方式， 用户可根据需要自定义
+     **/
     default void dealing(Set<Connection> committedSet, Set<Connection> uncommittedSet, Throwable ex) {
         try {
             rollbackUncommittedConnections(uncommittedSet);
@@ -19,10 +21,12 @@ public interface ITransCompensate {
         }
     }
 
-    /** 事务没有提交的 connection 做回滚 **/
+    /**
+     * 事务没有提交的 connection 做回滚
+     **/
     default void rollbackUncommittedConnections(Set<Connection> uncommittedSet) throws TransactionRolledbackException {
         try {
-            for(Connection connection: uncommittedSet) {
+            for (Connection connection : uncommittedSet) {
                 connection.rollback();
             }
         } catch (Exception e) {

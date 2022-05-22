@@ -7,14 +7,6 @@ import com.summer.common.core.ResultSet;
 import com.summer.common.core.RpcException;
 import com.summer.common.core.RpcQuery;
 import com.summer.common.core.RpcReply;
-import com.summer.common.ibatis.DataSourceManager;
-import com.summer.common.initializ.SpringBootApplication;
-import com.summer.common.support.CommonCode;
-import com.summer.common.support.IConstant;
-import com.summer.common.view.parser.ApiOperation;
-import com.summer.common.view.parser.RequestContext;
-import com.summer.common.view.parser.RequestHeader;
-import com.summer.common.view.parser.RequestSession;
 import com.summer.common.helper.BytesHelper;
 import com.summer.common.helper.DateHelper;
 import com.summer.common.helper.EncryptHelper;
@@ -23,6 +15,14 @@ import com.summer.common.helper.JsonHelper;
 import com.summer.common.helper.JvmOSHelper;
 import com.summer.common.helper.SpringHelper;
 import com.summer.common.helper.StringHelper;
+import com.summer.common.ibatis.DataSourceManager;
+import com.summer.common.initializ.SpringBootApplication;
+import com.summer.common.support.CommonCode;
+import com.summer.common.support.IConstant;
+import com.summer.common.view.parser.ApiOperation;
+import com.summer.common.view.parser.RequestContext;
+import com.summer.common.view.parser.RequestHeader;
+import com.summer.common.view.parser.RequestSession;
 import javafx.util.Pair;
 import org.springframework.boot.actuate.health.Health;
 import org.springframework.boot.actuate.health.HealthIndicator;
@@ -69,6 +69,8 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 public abstract class WebConfigurationSupport extends WebMvcConfigurationSupport implements WebSocketConfigurer {
+    private static IWebAuthenticationFilter AUTHENTICATION_FILTER;
+
     /**
      * Websocket允许的域
      **/
@@ -162,8 +164,6 @@ public abstract class WebConfigurationSupport extends WebMvcConfigurationSupport
         }, fixedRate, fixedRate, TimeUnit.MILLISECONDS);
     }
 
-    private static IWebAuthenticationFilter AUTHENTICATION_FILTER;
-
     private IWebAuthenticationFilter getAuthenticationFilter(ApplicationContext context) {
         if (null == AUTHENTICATION_FILTER) {
             AUTHENTICATION_FILTER = injectAuthenticationFilter(context);
@@ -203,8 +203,8 @@ public abstract class WebConfigurationSupport extends WebMvcConfigurationSupport
     @Controller
     @ControllerAdvice
     public static class GlobalControllerHandler implements ErrorController {
-        private static final String MIN_BASE64_IMAGE = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVQImWMoKyv7DwAFKgJi3Cd5fQAAAABJRU5ErkJggg==";
         public static final String ERROR_PATH = "/error", FAVICON_ICON = "/favicon.ico";
+        private static final String MIN_BASE64_IMAGE = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVQImWMoKyv7DwAFKgJi3Cd5fQAAAABJRU5ErkJggg==";
         private static final Set<String> STATE_SET = Sets.newHashSet("UP", "DOWN");
 
         @Override
@@ -315,6 +315,24 @@ public abstract class WebConfigurationSupport extends WebMvcConfigurationSupport
     @Controller
     @Deprecated
     public static class RpcController {
+        private static String uri(String ctrl, String method) {
+            if (StringHelper.isBlank(ctrl) && StringHelper.isBlank(method)) {
+                throw new RpcException(CommonCode.Unavailable);
+            }
+            if (!StringHelper.isBlank(ctrl)) {
+                if (!ctrl.startsWith("/")) {
+                    ctrl = "/" + ctrl;
+                }
+                if (ctrl.endsWith("/")) {
+                    ctrl = ctrl.substring(0, ctrl.length() - 1);
+                }
+            }
+            if (!StringHelper.isBlank(method) && !method.startsWith("/")) {
+                method = "/" + method;
+            }
+            return ctrl + method;
+        }
+
         @RequestMapping(path = {"", "/", "/rest"}, method = RequestMethod.POST, name = "RPC CMP 请求转发入口")
         public void dispatcher(@RequestBody StringRpcQuery query, HttpServletRequest request, HttpServletResponse response) throws Exception {
             RpcReply.Helper.get().setQuery(query);
@@ -343,6 +361,17 @@ public abstract class WebConfigurationSupport extends WebMvcConfigurationSupport
             }
         }
 
+        @ApiOperation(name = "服务状态监控")
+        @RequestMapping(path = "/{wn}/health_check", method = RequestMethod.GET)
+        @ResponseBody
+        Map<String, Object> healthCheck(@PathVariable("wn") String wn) {
+            if (SpringHelper.applicationName().equalsIgnoreCase(wn)) {
+                return ImmutableMap.of("name", wn, "status", 200);
+            } else {
+                return ImmutableMap.of("status", 404, "message", String.format("没有找到[%s]服务", wn));
+            }
+        }
+
         public static class StringRpcQuery extends RpcQuery<String> {
             private static final long serialVersionUID = 3645632047183378870L;
 
@@ -352,35 +381,6 @@ public abstract class WebConfigurationSupport extends WebMvcConfigurationSupport
                 if (StringHelper.isBlank(dispatcher) || dispatcher.equals("/")) {
                     throw new RpcException(CommonCode.Unavailable);
                 }
-            }
-        }
-
-        private static String uri(String ctrl, String method) {
-            if (StringHelper.isBlank(ctrl) && StringHelper.isBlank(method)) {
-                throw new RpcException(CommonCode.Unavailable);
-            }
-            if (!StringHelper.isBlank(ctrl)) {
-                if (!ctrl.startsWith("/")) {
-                    ctrl = "/" + ctrl;
-                }
-                if (ctrl.endsWith("/")) {
-                    ctrl = ctrl.substring(0, ctrl.length() - 1);
-                }
-            }
-            if (!StringHelper.isBlank(method) && !method.startsWith("/")) {
-                method = "/" + method;
-            }
-            return ctrl + method;
-        }
-
-        @ApiOperation(name = "服务状态监控")
-        @RequestMapping(path = "/{wn}/health_check", method = RequestMethod.GET)
-        @ResponseBody
-        Map<String, Object> healthCheck(@PathVariable("wn") String wn) {
-            if (SpringHelper.applicationName().equalsIgnoreCase(wn)) {
-                return ImmutableMap.of("name", wn, "status", 200);
-            } else {
-                return ImmutableMap.of("status", 404, "message", String.format("没有找到[%s]服务", wn));
             }
         }
     }

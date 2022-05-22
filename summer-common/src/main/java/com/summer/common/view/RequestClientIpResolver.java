@@ -1,9 +1,9 @@
 package com.summer.common.view;
 
+import com.summer.common.helper.NetworkHelper;
 import com.summer.common.view.parser.ClientIP;
 import com.summer.common.view.parser.RequestContext;
 import com.summer.common.view.parser.RequestSession;
-import com.summer.common.helper.NetworkHelper;
 import org.springframework.core.MethodParameter;
 import org.springframework.web.bind.ServletRequestBindingException;
 import org.springframework.web.bind.support.WebDataBinderFactory;
@@ -15,6 +15,7 @@ import javax.servlet.http.HttpServletRequest;
 
 public class RequestClientIpResolver implements HandlerMethodArgumentResolver {
     private static final String EMPTY = "";
+
     @Override
     public boolean supportsParameter(MethodParameter parameter) {
         return parameter.getParameterAnnotation(ClientIP.class) != null;

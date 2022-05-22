@@ -18,15 +18,18 @@ import java.lang.reflect.Type;
 import java.util.List;
 import java.util.Set;
 
-/** JSON工具类 **/
+/**
+ * JSON工具类
+ **/
 public final class JsonHelper {
     private static final Logger LOG = LoggerFactory.getLogger(JsonHelper.class);
 
     public static NameFilter NAME_2_CAMEL = new CamelNameFilter(), NAME_2_UNDERLINE = new UnderlineNameFilter();
+
     private JsonHelper() {
     }
 
-    public static SerializerFeature[] serializerFeatures(SerializerFeature ...features) {
+    public static SerializerFeature[] serializerFeatures(SerializerFeature... features) {
         Set<SerializerFeature> fSet = Sets.newHashSet(
                 SerializerFeature.QuoteFieldNames,
                 SerializerFeature.WriteMapNullValue,
@@ -38,8 +41,8 @@ public final class JsonHelper {
                 SerializerFeature.WriteNullBooleanAsFalse,
                 SerializerFeature.DisableCircularReferenceDetect
                                                      );
-        if(!CollectsHelper.isNullOrEmpty(features)) {
-            for(SerializerFeature feature: features) {
+        if (!CollectsHelper.isNullOrEmpty(features)) {
+            for (SerializerFeature feature : features) {
                 fSet.add(feature);
             }
         }
@@ -58,7 +61,8 @@ public final class JsonHelper {
         try {
             return null == body ? null : JSON.parseObject(body, type, features);
         } catch (Exception e) {
-            LOG.error("反序列化{}=>{}发生错误", new String(body, IOUtils.UTF8), type.getTypeName()); throw e;
+            LOG.error("反序列化{}=>{}发生错误", new String(body, IOUtils.UTF8), type.getTypeName());
+            throw e;
         }
     }
 
@@ -66,9 +70,11 @@ public final class JsonHelper {
         try {
             return null == body ? null : JSON.parseObject(body, type, features);
         } catch (Exception e) {
-            LOG.error("反序列化{}=>{}发生错误", body, type.getTypeName()); throw e;
+            LOG.error("反序列化{}=>{}发生错误", body, type.getTypeName());
+            throw e;
         }
     }
+
     public static <T> T parseObject(InputStream stream, final Type type, Feature... features) {
         try {
             return null == stream ? null : JSON.parseObject(stream, BytesHelper.UTF8, type, features);
@@ -76,16 +82,20 @@ public final class JsonHelper {
             throw new RuntimeException("JSON parse InputStream to object error ", e);
         }
     }
+
     public static JSONArray parseArray(String body) {
         return JSON.parseArray((null == body || "".equals(body)) ? "[]" : body);
     }
+
     public static <T> List<T> parseArray(String body, final Class<T> clazz) {
         try {
             return blankBody(body) ? Lists.newArrayList() : JSON.parseArray(body, clazz);
         } catch (Exception e) {
-            LOG.error("反序列化{}=>{}发生错误", body, clazz.getTypeName()); throw e;
+            LOG.error("反序列化{}=>{}发生错误", body, clazz.getTypeName());
+            throw e;
         }
     }
+
     public static <T> List<T> parseArray(InputStream stream, final Class<T> clazz) {
         return parseArray(BytesHelper.string(stream), clazz);
     }
@@ -105,9 +115,10 @@ public final class JsonHelper {
     public static JSONObject parseObject(String body) {
         return blankBody(body) ? new JSONObject() : JSON.parseObject(body);
     }
+
     public static <T> T underlineJson2Object(String body, final Type type) {
-        if(blankBody(body)) {
-            return String.class.equals(type) ? (T)StringHelper.EMPTY : null;
+        if (blankBody(body)) {
+            return String.class.equals(type) ? (T) StringHelper.EMPTY : null;
         }
         String camelBody = toJSONString(parseObject(body), NAME_2_CAMEL);
         return parseObject(camelBody, type);
@@ -126,6 +137,7 @@ public final class JsonHelper {
             return StringHelper.camel2Underline(name);
         }
     }
+
     public static final class CamelNameFilter implements NameFilter {
         @Override
         public String process(Object object, String name, Object value) {

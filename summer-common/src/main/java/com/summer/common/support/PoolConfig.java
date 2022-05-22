@@ -4,11 +4,14 @@ import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
 
 public abstract class PoolConfig {
     private final static GenericObjectPoolConfig CONF = new GenericObjectPoolConfig();
+
     static {
-        CONF.setTimeBetweenEvictionRunsMillis(60*1000L);
-        CONF.setSoftMinEvictableIdleTimeMillis(100*1000L);
-        CONF.setTestOnBorrow(true); CONF.setTestWhileIdle(true);
-        CONF.setMaxWaitMillis(3000L); CONF.setNumTestsPerEvictionRun(16);
+        CONF.setTimeBetweenEvictionRunsMillis(60 * 1000L);
+        CONF.setSoftMinEvictableIdleTimeMillis(100 * 1000L);
+        CONF.setTestOnBorrow(true);
+        CONF.setTestWhileIdle(true);
+        CONF.setMaxWaitMillis(3000L);
+        CONF.setNumTestsPerEvictionRun(16);
     }
 
     public static <T> GenericObjectPoolConfig<T> of(int maxIdle) {
@@ -16,6 +19,6 @@ public abstract class PoolConfig {
         CONF.setMaxIdle(maxIdle);
         CONF.setMaxTotal(maxIdle + 5);
         //noinspection unchecked
-        return  (GenericObjectPoolConfig<T>)CONF;
+        return (GenericObjectPoolConfig<T>) CONF;
     }
 }

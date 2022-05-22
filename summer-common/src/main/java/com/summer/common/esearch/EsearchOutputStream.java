@@ -5,13 +5,13 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.summer.common.esearch.orm.Property;
-import com.summer.common.support.NaturalizeLog;
 import com.summer.common.helper.BytesHelper;
 import com.summer.common.helper.DateHelper;
 import com.summer.common.helper.EncryptHelper;
 import com.summer.common.helper.StringHelper;
 import com.summer.common.helper.ThreadFactoryHelper;
 import com.summer.common.support.DateFormat;
+import com.summer.common.support.NaturalizeLog;
 import com.summer.common.support.OperationLog;
 import javafx.util.Pair;
 import org.elasticsearch.action.bulk.BulkItemResponse;
@@ -62,13 +62,15 @@ public final class EsearchOutputStream extends OutputStream {
     private final TransportClient client;
     private final Future<?> task;
     private boolean loop = true;
+
     public EsearchOutputStream(String elasticURI) {
         this.client = EsearchFactory.transportClient(elasticURI);
         this.task = startingWrite2Elasticsearch();
     }
 
-    @Override public void write(@SuppressWarnings("NullableProblems") byte[] ml) {
-        if(null == ml || ml.length < 1) return;
+    @Override
+    public void write(@SuppressWarnings("NullableProblems") byte[] ml) {
+        if (null == ml || ml.length < 1) return;
         String log = BytesHelper.string(ml);
         try {
             if (log.startsWith(OLF)) {
@@ -88,11 +90,13 @@ public final class EsearchOutputStream extends OutputStream {
             do {
                 try {
                     Pair<String, String> pair = queue.poll(5, TimeUnit.SECONDS);
-                    if(null != pair && !StringHelper.isBlank(pair.getKey()) && !StringHelper.isBlank(pair.getValue())) {
+                    if (null != pair && !StringHelper.isBlank(pair.getKey()) && !StringHelper.isBlank(pair.getValue())) {
                         String index = indexNameByType(pair.getKey());
-                        if(!StringHelper.isBlank(index)) { String did = EncryptHelper.md5(pair.getValue());
+                        if (!StringHelper.isBlank(index)) {
+                            String did = EncryptHelper.md5(pair.getValue());
                             bulk.add(client.prepareIndex(index, pair.getKey(), did).setSource(pair.getValue(), XContentType.JSON));
-                            sources.add(pair.getValue()); if (sources.size() > QUEUE_SIZE) bulk = pushLog(sources, bulk);
+                            sources.add(pair.getValue());
+                            if (sources.size() > QUEUE_SIZE) bulk = pushLog(sources, bulk);
                         } else {
                             System.out.println(pair.getValue());
                         }
@@ -101,11 +105,13 @@ public final class EsearchOutputStream extends OutputStream {
                     }
                 } catch (InterruptedException ie) {
                     System.out.println("LOG to elasticsearch error retry...");
-                    ie.printStackTrace(); if (sources.size() > 0) {
+                    ie.printStackTrace();
+                    if (sources.size() > 0) {
                         try {
                             bulk = pushLog(sources, bulk);
                         } catch (Exception e) {
-                            degrade2console(sources, e); bulk = pushLog(sources, null);
+                            degrade2console(sources, e);
+                            bulk = pushLog(sources, null);
                         }
                     }
                 }
@@ -114,30 +120,38 @@ public final class EsearchOutputStream extends OutputStream {
     }
 
     private BulkRequestBuilder pushLog(List<String> sources, BulkRequestBuilder bulk) {
-        if(null != bulk) {
+        if (null != bulk) {
             BulkResponse response = bulk.get(TIMEOUT);
-            if(response.hasFailures()) {
-                for(BulkItemResponse item: response.getItems()) {
+            if (response.hasFailures()) {
+                for (BulkItemResponse item : response.getItems()) {
                     item.getFailure().getCause().printStackTrace();
                 }
             }
-        } sources.clear(); return client.prepareBulk();
+        }
+        sources.clear();
+        return client.prepareBulk();
     }
 
-    @Override public void write(int b) {}
-    @Override public void close() {
-        loop = false; task.cancel(true); BytesHelper.close(client);
+    @Override
+    public void write(int b) {
+    }
+
+    @Override
+    public void close() {
+        loop = false;
+        task.cancel(true);
+        BytesHelper.close(client);
     }
 
     private void degrade2console(List<String> sources, Throwable cause) {
         System.out.println("LOG by elasticsearch error log degrade to console...");
-        if(null != cause) cause.printStackTrace();
-        for(String source: sources) System.out.println(source);
+        if (null != cause) cause.printStackTrace();
+        for (String source : sources) System.out.println(source);
     }
 
     private String indexNameByType(String clzName) {
         String indexName = indexName(), indexType = indexName + "_" + clzName;
-        if(!INDEX_TYPE_SET.contains(indexType)) synchronized (this) {
+        if (!INDEX_TYPE_SET.contains(indexType)) synchronized (this) {
             try {
                 IndicesAdminClient admin = client.admin().indices();
                 if (!admin.prepareExists(indexName).get(TIMEOUT).isExists()) {

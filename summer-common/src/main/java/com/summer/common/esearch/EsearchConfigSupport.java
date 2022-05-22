@@ -13,26 +13,32 @@ import java.util.Map;
 public abstract class EsearchConfigSupport {
     private static final Logger LOG = LoggerFactory.getLogger(EsearchConfigSupport.class);
 
-    /** 如: com.thinker.tob  **/
-    protected abstract String modelBasePackage();
-
-    /** 添加多个 Elasticsearch 操作 **/
-    protected abstract void addMultiEsearchOperations(Environment env, Map<String, EsearchOperations> esMap);
-
-    /** ES://cluster@host:port,host:port,host:port */
-    protected EsearchOperations newborn(String uri, boolean showQuery) {
-        LOG.info("elasticsearch uri: {}", uri);
-        return new EsearchOperations(EsearchFactory.transportClient(uri), showQuery);
-    }
-
     protected EsearchConfigSupport() {
         EomInitializer.prepare(modelBasePackage());
         addMultiEsearchOperations(SpringHelper.getEnvironment(), EsearchFactory.ES_MAP);
         EomInitializer.processed();
     }
 
+    /**
+     * 如: com.thinker.tob
+     **/
+    protected abstract String modelBasePackage();
+
+    /**
+     * 添加多个 Elasticsearch 操作
+     **/
+    protected abstract void addMultiEsearchOperations(Environment env, Map<String, EsearchOperations> esMap);
+
+    /**
+     * ES://cluster@host:port,host:port,host:port
+     */
+    protected EsearchOperations newborn(String uri, boolean showQuery) {
+        LOG.info("elasticsearch uri: {}", uri);
+        return new EsearchOperations(EsearchFactory.transportClient(uri), showQuery);
+    }
+
     @Bean
-    public EsearchHealth esearchHealth(){
+    public EsearchHealth esearchHealth() {
         return new EsearchHealth();
     }
 
@@ -40,7 +46,7 @@ public abstract class EsearchConfigSupport {
         @Override
         public Health health() {
             Health.Builder builder = Health.up();
-            for(Map.Entry<String, EsearchOperations> entry: EsearchFactory.ES_MAP.entrySet()) {
+            for (Map.Entry<String, EsearchOperations> entry : EsearchFactory.ES_MAP.entrySet()) {
                 builder.withDetail(entry.getKey(), entry.getValue().listNodes());
             }
             return builder.build();

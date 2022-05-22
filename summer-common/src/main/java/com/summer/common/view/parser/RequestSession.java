@@ -69,18 +69,18 @@ public final class RequestSession implements Serializable {
     public String uid;
     // 扩展数据
     public String ext;
-
+    @Deprecated
+    public ICodeMSG icm;
+    @Deprecated
+    public boolean apiIntercept;
     @Deprecated
     int keyStyle;
     @Deprecated
     int frontREQ;
 
-    @Deprecated
-    public ICodeMSG icm;
-    @Deprecated
-    public boolean apiIntercept;
-
-    /** 生成请求认证 Session **/
+    /**
+     * 生成请求认证 Session
+     **/
     public static RequestSession newborn(HttpServletRequest request) {
         RequestSession session = new RequestSession();
         session.rid = header(request, RequestHeader.Rid);
@@ -114,7 +114,9 @@ public final class RequestSession implements Serializable {
         return session;
     }
 
-    /** 生成请求认证 Session **/
+    /**
+     * 生成请求认证 Session
+     **/
     public static RequestSession newbornWithWebsocket() {
         RequestSession session = new RequestSession();
         session.rid = SnowIdHelper.unique();

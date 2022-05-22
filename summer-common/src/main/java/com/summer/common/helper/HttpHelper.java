@@ -50,19 +50,19 @@ public final class HttpHelper {
      * ok http client
      */
     private static final OkHttpClient OK_CLIENT = new OkHttpClient().newBuilder()
-            .readTimeout(DEFAULT_TIMEOUT, TimeUnit.SECONDS)
-            .writeTimeout(DEFAULT_TIMEOUT, TimeUnit.SECONDS)
-            .connectTimeout(DEFAULT_TIMEOUT / 5, TimeUnit.SECONDS)
-            .build();
+                                                                    .readTimeout(DEFAULT_TIMEOUT, TimeUnit.SECONDS)
+                                                                    .writeTimeout(DEFAULT_TIMEOUT, TimeUnit.SECONDS)
+                                                                    .connectTimeout(DEFAULT_TIMEOUT / 5, TimeUnit.SECONDS)
+                                                                    .build();
+
+    private HttpHelper() {
+    }
 
     private static Dispatcher getDispatcher() {
         Dispatcher dispatcher = new Dispatcher();
         // 增大同时请求同一个host的量
         dispatcher.setMaxRequestsPerHost(20);
         return dispatcher;
-    }
-
-    private HttpHelper() {
     }
 
     public static MediaType multiPartType() {
@@ -382,8 +382,8 @@ public final class HttpHelper {
         }
         if (timeout != DEFAULT_TIMEOUT) {
             okBuilder.connectTimeout(timeout, TimeUnit.SECONDS)
-                    .writeTimeout(timeout, TimeUnit.SECONDS)
-                    .readTimeout(timeout, TimeUnit.SECONDS);
+                     .writeTimeout(timeout, TimeUnit.SECONDS)
+                     .readTimeout(timeout, TimeUnit.SECONDS);
         }
         return okBuilder.build().newCall(builder.build());
     }

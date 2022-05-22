@@ -23,11 +23,15 @@ import java.util.function.Function;
  * 时间工具类
  **/
 public final class DateHelper {
-    public static Date MIN = ofDate(0L);
     public static final long SECOND_TIME = 1000L;
     public static final long MINUTE_TIME = 60 * SECOND_TIME;
     public static final long HOUR_TIME = 60 * MINUTE_TIME;
     public static final long DAY_TIME = 24 * HOUR_TIME;
+    /**
+     * 给定 format 将 string 转换成 LocalDate
+     **/
+    private static final Set<DateFormat> DF = Sets.newHashSet(DateFormat.ShortNumDate, DateFormat.NumDate, DateFormat.StrikeDate);
+    public static Date MIN = ofDate(0L);
 
     private DateHelper() {
     }
@@ -77,11 +81,6 @@ public final class DateHelper {
     public static Date ofDate(long time) {
         return Date.from(Instant.ofEpochMilli(time));
     }
-
-    /**
-     * 给定 format 将 string 转换成 LocalDate
-     **/
-    private static final Set<DateFormat> DF = Sets.newHashSet(DateFormat.ShortNumDate, DateFormat.NumDate, DateFormat.StrikeDate);
 
     public static LocalDate ofLocalDate(String sDate, DateFormat format) {
         if (!DF.contains(format)) {
@@ -173,21 +172,25 @@ public final class DateHelper {
     public static long time() {
         return System.currentTimeMillis();
     }
+
     public static double doubleTime() {
         return doubleTime(System.currentTimeMillis());
     }
+
     /**
      * 将 LocalDate 转换成毫秒
      **/
     public static long time(final Date date) {
         return null == date ? 0L : date.getTime();
     }
+
     /**
      * 将毫秒时间戳 转换成 yyyyMMddHHmmss.SSS
      **/
     public static double doubleTime(long time) {
         return Double.parseDouble(format(time, DateFormat.DoubleDateTime));
     }
+
     /**
      * 将 LocalDate 转换成毫秒
      **/
@@ -319,7 +322,7 @@ public final class DateHelper {
         return calendar.getTime();
     }
 
-    public static Date addMonths(final Date date, int months){
+    public static Date addMonths(final Date date, int months) {
         Calendar calendar = Calendar.getInstance();
         calendar.setTime(date);
         calendar.add(Calendar.MONTH, months);
@@ -495,9 +498,10 @@ public final class DateHelper {
         calendar.add(Calendar.MONTH, -month);
         Date time = calendar.getTime();
         /**确定开始时间为当前月的1号 **/
-        Date firstDayOfMonth =  firstDayOfMonth(time);
+        Date firstDayOfMonth = firstDayOfMonth(time);
         return firstDayOfMonth.getTime();
     }
+
     /**
      * 计算某个时间戳与当前相差月份
      */
@@ -506,11 +510,12 @@ public final class DateHelper {
         LocalDate start = ofLocalDate(startTime);
         int month = now.getMonthValue() - start.getMonthValue();
         int year = now.getYear() - start.getYear();
-        return year*12 + month;
+        return year * 12 + month;
     }
 
     /**
      * 比较 beginTime > endTime true
+     *
      * @param beginTime
      * @param endTime
      * @return
@@ -525,6 +530,7 @@ public final class DateHelper {
 
     /**
      * 比较 beginTime >= endTime false
+     *
      * @param beginTime
      * @param endTime
      * @return

@@ -1,8 +1,8 @@
 package com.summer.common.view;
 
 import com.summer.common.helper.BeanHelper;
-import com.summer.common.view.parser.Queries;
 import com.summer.common.helper.StrCastHelper;
+import com.summer.common.view.parser.Queries;
 import org.springframework.core.MethodParameter;
 import org.springframework.web.bind.support.WebDataBinderFactory;
 import org.springframework.web.context.request.NativeWebRequest;

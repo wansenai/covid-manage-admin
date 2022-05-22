@@ -3,9 +3,9 @@ package com.summer.common.core;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.summer.common.helper.BeanHelper;
-import com.summer.common.ibatis.DynamicStrategy;
 import com.summer.common.helper.CollectsHelper;
 import com.summer.common.helper.JsonHelper;
+import com.summer.common.ibatis.DynamicStrategy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,7 +28,7 @@ public abstract class BaseDTO implements Serializable {
     }
 
     public static <T> List<T> fromEntity(List<? extends BaseEntity<? extends DynamicStrategy>> entities, Class<T> clazz) {
-        if(CollectsHelper.isNullOrEmpty(entities)) {
+        if (CollectsHelper.isNullOrEmpty(entities)) {
             return Lists.newArrayList();
         }
         return BeanHelper.castTo(entities, clazz);
@@ -39,7 +39,7 @@ public abstract class BaseDTO implements Serializable {
     }
 
     public static <T extends BaseEntity<? extends DynamicStrategy>> List<T> toEntity(List<? extends BaseDTO> dtos, Class<T> clazz) {
-        if(CollectsHelper.isNullOrEmpty(dtos)) {
+        if (CollectsHelper.isNullOrEmpty(dtos)) {
             return Lists.newArrayList();
         }
         return BeanHelper.castTo(dtos, clazz);
